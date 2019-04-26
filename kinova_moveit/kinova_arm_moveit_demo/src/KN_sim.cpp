@@ -33,7 +33,6 @@ geometry_msgs::Pose placePose;                      //机械臂抓取放置位�
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
 bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1，等待结束后置0
 
-
 //-------------------------------------------------相机相关--------------------------------------------------
 //相机参数和深度信息用于计算
 #define Fxy 692.97839
@@ -63,7 +62,6 @@ const double FINGER_MAX = 6400;	//手指开合程度：0完全张开，6400完�
 float closeVals[10]=    {1.200, 0.900, 1.050, 1.150, 1.200, 1.050, 0.960, 1.300, 0.950, 1.200};// 爪子闭合程度
 float highVals[10]=     {0.065, 0.065, 0.050, 0.025, 0.040, 0.030, 0.020, 0.065, 0.050, 0.030};// 抓取高度
 float openVals[10]=     {0.900, 0.400, 0.400, 0.800, 0.800, 0.400, 0.400, 0.400, 0.800, 0.400};// 爪子张开程度
-
 
 // -------------------------------------------------函数定义-------------------------------------------------
 //接收到detect_result消息的回调函数，将消息内容赋值到全局变量targets里面
@@ -98,11 +96,10 @@ void goPlacePose(geometry_msgs::Pose placePose);
 // -------------------------------------------------主程序入口-------------------------------------------------
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "our_pick_place");
+  ros::init(argc, argv, "KN_sim");
 	ros::NodeHandle node_handle;  
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
-
 
   client = new Finger_actionlibClient(Finger_action_address, true);
 
@@ -312,30 +309,30 @@ void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_
 //手抓控制函数，输入0-1之间的控制量，控制手抓开合程度，0完全张开，1完全闭合 added by yang 20180418
 bool fingerControl(double finger_turn)
 {
-    if (finger_turn < 0)
-    {
-        finger_turn = 0.0;
-    }
-    else
-    {
-        finger_turn = std::min(finger_turn, 1.0);
-    }
-    kinova_msgs::SetFingersPositionGoal goal;
-    goal.fingers.finger1 = finger_turn * FINGER_MAX;
-    goal.fingers.finger2 = goal.fingers.finger1;
-    goal.fingers.finger3 = goal.fingers.finger1;
-    client->sendGoal(goal);
-    if (client->waitForResult(ros::Duration(5.0)))
-    {
-        client->getResult();
-        return true;
-    }
-    else
-    {
-        client->cancelAllGoals();
-        ROS_WARN_STREAM("The gripper action timed-out");
-        return false;
-    }
+  if (finger_turn < 0)
+  {
+    finger_turn = 0.0;
+  }
+  else
+  {
+    finger_turn = std::min(finger_turn, 1.0);
+  }
+  kinova_msgs::SetFingersPositionGoal goal;
+  goal.fingers.finger1 = finger_turn * FINGER_MAX;
+  goal.fingers.finger2 = goal.fingers.finger1;
+  goal.fingers.finger3 = goal.fingers.finger1;
+  client->sendGoal(goal);
+  if (client->waitForResult(ros::Duration(5.0)))
+  {
+    client->getResult();
+    return true;
+  }
+  else
+  {
+    client->cancelAllGoals();
+    ROS_WARN_STREAM("The gripper action timed-out");
+    return false;
+  }
 }
 
 void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
@@ -438,64 +435,64 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
 //抓取插值函数
 std::vector<geometry_msgs::Pose> pickInterpolate(geometry_msgs::Pose startPose,geometry_msgs::Pose targetPose)
 {
-    //从放置位置前往抓取位置
-    //插值后路径为＂----|＂形（先平移，后下落）
-    std::vector<geometry_msgs::Pose> pickWayPoints;
+  //从放置位置前往抓取位置
+  //插值后路径为＂----|＂形（先平移，后下落）
+  std::vector<geometry_msgs::Pose> pickWayPoints;
 
-    geometry_msgs::Pose midPose4;
+  geometry_msgs::Pose midPose4;
 
-    geometry_msgs::Point startPoint;
-    geometry_msgs::Point targetPoint;
-    geometry_msgs::Point midPoint;
+  geometry_msgs::Point startPoint;
+  geometry_msgs::Point targetPoint;
+  geometry_msgs::Point midPoint;
 
-    startPoint = startPose.position;
-    targetPoint = targetPose.position;
+  startPoint = startPose.position;
+  targetPoint = targetPose.position;
 
-    // midPose4
-    midPoint.x = targetPoint.x;
-    midPoint.y = targetPoint.y;
-    midPoint.z = startPoint.z;
+  // midPose4
+  midPoint.x = targetPoint.x;
+  midPoint.y = targetPoint.y;
+  midPoint.z = startPoint.z;
 
-    midPose4.position = midPoint;
-    midPose4.orientation = targetPose.orientation;
+  midPose4.position = midPoint;
+  midPose4.orientation = targetPose.orientation;
 
-    pickWayPoints.push_back(midPose4);
+  pickWayPoints.push_back(midPose4);
 
-    // Give targetPose
-    pickWayPoints.push_back(targetPose);
+  // Give targetPose
+  pickWayPoints.push_back(targetPose);
 
-    return pickWayPoints;
+  return pickWayPoints;
 }
 
 //放置插值函数
 std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,geometry_msgs::Pose targetPose)
 {
-    //从放置位置前往抓取位置
-    //插值后路径为＂|----＂形（先抬升，后平移）
-    std::vector<geometry_msgs::Pose> placeWayPoints;
-    geometry_msgs::Pose midPose1;
+  //从放置位置前往抓取位置
+  //插值后路径为＂|----＂形（先抬升，后平移）
+  std::vector<geometry_msgs::Pose> placeWayPoints;
+  geometry_msgs::Pose midPose1;
 
-    geometry_msgs::Point startPoint;
-    geometry_msgs::Point targetPoint;
-    geometry_msgs::Point midPoint;
+  geometry_msgs::Point startPoint;
+  geometry_msgs::Point targetPoint;
+  geometry_msgs::Point midPoint;
 
-    startPoint = startPose.position;
-    targetPoint = targetPose.position;
+  startPoint = startPose.position;
+  targetPoint = targetPose.position;
 
-    // midPose1
-    midPoint.x = startPoint.x;
-    midPoint.y = startPoint.y;
-    midPoint.z = targetPoint.z;
+  // midPose1
+  midPoint.x = startPoint.x;
+  midPoint.y = startPoint.y;
+  midPoint.z = targetPoint.z;
 
-    midPose1.position = midPoint;
-    midPose1.orientation = targetPose.orientation;
+  midPose1.position = midPoint;
+  midPose1.orientation = targetPose.orientation;
 
-    placeWayPoints.push_back(midPose1);
+  placeWayPoints.push_back(midPose1);
 
-    // Give targetPose
-    placeWayPoints.push_back(targetPose);
+  // Give targetPose
+  placeWayPoints.push_back(targetPose);
 
-    return placeWayPoints;
+  return placeWayPoints;
 }
 
 void setPlacePose()
