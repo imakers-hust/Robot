@@ -14,6 +14,7 @@ find_package(catkin REQUIRED
              pluginlib
              cmake_modules
              geometric_shapes
+             robotiq_2f_gripper_control
 )
 
 find_package(Boost REQUIRED system filesystem date_time thread)
