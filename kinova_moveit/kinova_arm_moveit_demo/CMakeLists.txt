@@ -94,6 +94,11 @@ install(TARGETS KN_real DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 add_executable(UR_real src/UR_real.cpp)
 target_link_libraries(UR_real ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
 install(TARGETS UR_real DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(KN_sim_new src/KN_sim_new.cpp)
+target_link_libraries(KN_sim_new ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
+install(TARGETS KN_sim_new DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 ## end
 
 #get_cmake_property(_variableNames VARIABLES)
