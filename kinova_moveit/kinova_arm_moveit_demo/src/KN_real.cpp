@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	/*************************************/
 	/********初始化设置*******************/
 	/*************************************/
-	ros::init(argc, argv, "our_pick_place");
+  ros::init(argc, argv, "KN_real");
 	ros::NodeHandle node_handle;  
 	ros::AsyncSpinner spinner(3);
 	spinner.start();

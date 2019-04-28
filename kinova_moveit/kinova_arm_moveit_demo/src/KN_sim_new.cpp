@@ -1,4 +1,4 @@
-﻿#include <moveit/move_group_interface/move_group_interface.h>   // replace the old version "move_group.h"
+#include <moveit/move_group_interface/move_group_interface.h>   // replace the old version "move_group.h"
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -16,39 +16,46 @@
 #include "kinova_arm_moveit_demo/targetsVector.h"   //自定义消息类型，所有识别定位结果
 #include "kinova_arm_moveit_demo/targetState.h"     //自定义消息类型，单个识别定位结果
 #include "rviz_teleop_commander/targets_tag.h"      //自定义消息类型，传递要抓取的目标标签
-#include "rviz_teleop_commander/grab_result.h"      //自定义消息类型，传递当前抓取的目标标签和抓取次数
+#include "rviz_teleop_commander/grab_result.h"      //自定义消息类型，传递当前抓取的目标标签和抓取次数 -- 用于在rviz界面显示当前抓取编号和抓取次数
 #include <Eigen/Eigen>
 #include <sensor_msgs/JointState.h>                 //关节位置信息
 
 using namespace std;
 using namespace Eigen;
 
-
-//-------------------------------------------------全局变量----------------------------------------------------
-const int n_MAX=3;                                  //同一物品最大抓取次数
+//-------------------------------------------------全局变量--------------------------------------------------
 const int N_MAX=70;                                 //循环抓取允许最大识别不到的次数，超出此次数识别结束
 vector<kinova_arm_moveit_demo::targetState> targets;//视觉定位结果
-bool getTargets=0;                                	//当接收到视觉定位结果时getTargets置1，执行完放置后置0
+std::vector< double > startPose;                    //机械臂初始识别位置
+std::vector< double > startPose1;                   //姿态备选
+std::vector< double > startPose2;
+std::vector< double > startPose3;
+std::vector< double > startPose4;
 geometry_msgs::Pose placePose;                      //机械臂抓取放置位置
+sensor_msgs::JointState kinovaState;                //机械臂当前状态
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
-bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1，等待结束后置0
+bool getTargets=0;                                	//当接收到视觉定位结果时getTargets置1，执行完放置后置0
+bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1
+int poseChangeTimes=3;                              //当检测不到目标物体时,变换姿态重新检测的次数
+double minimumDistance = 0.3;                       //允许距离目标物的最小距离,单位米
+double servoCircle = 0.5;                           //伺服运动周期,单位秒
 
 //-------------------------------------------------相机相关--------------------------------------------------
 //相机参数和深度信息用于计算
 #define Fxy 692.97839
 #define UV0 400.5
 #define Zw 0.77
-//手眼关系
+//手眼关系定义--赋值在main函数中
 Eigen::Matrix3d base2eye_r;
 Eigen::Vector3d base2eye_t;
 Eigen::Quaterniond base2eye_q;
 
-//-------------------------------------------------手爪相关------------------------------------------------
-//手指client类型自定义
-typedef actionlib::SimpleActionClient<kinova_msgs::SetFingersPositionAction> Finger_actionlibClient;
+//-------------------------------------------------机器人相关------------------------------------------------
 //定义机器人类型
 string kinova_robot_type = "j2s7s300";
 string Finger_action_address = "/" + kinova_robot_type + "_driver/fingers_action/finger_positions";    //手指控制服务器的名称
+//手指client类型自定义
+typedef actionlib::SimpleActionClient<kinova_msgs::SetFingersPositionAction> Finger_actionlibClient;
 //定义手指控制client
 Finger_actionlibClient* client=NULL;
 //爪子开闭程度
@@ -64,14 +71,11 @@ float highVals[10]=     {0.065, 0.065, 0.050, 0.025, 0.040, 0.030, 0.020, 0.065,
 float openVals[10]=     {0.900, 0.400, 0.400, 0.800, 0.800, 0.400, 0.400, 0.400, 0.800, 0.400};// 爪子张开程度
 
 // -------------------------------------------------函数定义-------------------------------------------------
-//接收到detect_result消息的回调函数，将消息内容赋值到全局变量targets里面
+//接收相机节点发过来的识别结果,更新全局变量targets
 void detectResultCB(const kinova_arm_moveit_demo::targetsVector &msg);
 
-//接收targets_tag消息的回调函数，将接收到的消息更新到targetsTag里面
+//接收teleop指定的抓取序列号，更新全局变量targetsTag
 void tagsCB(const rviz_teleop_commander::targets_tag &msg);
-
-//循环检测当前视觉识别中是否还有要抓取的目标
-void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState);
 
 //手抓控制函数，输入0-1之间的控制量，控制手抓开合程度，0完全张开，1完全闭合
 bool fingerControl(double finger_turn);
@@ -88,12 +92,46 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
 //设置机械臂放置位置
 void setPlacePose();
 
+void setStartPose1();
+void setStartPose2();
+void setStartPose3();
+void setStartPose4();
+
 //前往视觉识别初始位置
 void goStartPose();
 
+//相机识别到的物体位姿转换到机器人基座标系下
+kinova_arm_moveit_demo::targetState transCamera2Robot(kinova_arm_moveit_demo::targetState targetBeforeTrans, sensor_msgs::JointState curState);
+
+//获取机器人当前信息
+void getRobotInfo(sensor_msgs::JointState curState);
+
+//判断目标物体是否存在
+bool judgeIsExist(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
+
+//判断目标物体是否被遮挡
+bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
+
+//获取遮挡物体的位置
+kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
+
+//拾取遮挡物体
+void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow);
+
+//放置遮挡物体
+void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll);
+
+//计算与目标物体的绝对距离
+double calcDistance(kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState);
+
+//获取当前目标对象的位置
+kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
+
+//接近目标物体
+void approachTarget(int tag,kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState);
 
 
-// -------------------------------------------------主程序入口-------------------------------------------------
+// -------------------------------------------------主程序入口-----------------------------------------------
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "KN_sim");
@@ -101,107 +139,168 @@ int main(int argc, char **argv)
 	ros::AsyncSpinner spinner(3);
 	spinner.start();
 
-  client = new Finger_actionlibClient(Finger_action_address, true);
-
   //发布消息和订阅消息
   ros::Publisher display_publisher = node_handle.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
-  moveit_msgs::DisplayTrajectory display_trajectory;
 	ros::Publisher detectTarget_pub = node_handle.advertise<std_msgs::Int8>("detect_target", 10);  //让visual_detect节点检测目标
 	ros::Publisher grab_result_pub = node_handle.advertise<rviz_teleop_commander::grab_result>("grab_result", 1);  //发布抓取状态
 	ros::Subscriber detectResult_sub = node_handle.subscribe("detect_result", 1, detectResultCB);    //接收visual_detect检测结果
-  ros::Subscriber tags_sub = node_handle.subscribe("targets_tag", 1, tagsCB);				//接收要抓取的目标
+  ros::Subscriber tags_sub = node_handle.subscribe("targets_tag", 1, tagsCB);				//接收目标序列
+  ros::Subscriber joints_sub = node_handle.subscribe("/j2s7s300/joint_states", 1, getRobotInfo);				//接收目标序列
 
-	int n=0;		//记录对同一目标抓取的次数
+  moveit_msgs::DisplayTrajectory display_trajectory;
+  rviz_teleop_commander::grab_result grabResultMsg;
 	std_msgs::Int8 detectTarget;
 
-	//手眼关系赋值
+  //手眼关系赋值
   base2eye_r<<-1, 0, 0,
                0, 1, 0,
                0, 0, -1;
   base2eye_t<<0.321,0.43,0.8;
   base2eye_q=base2eye_r;
+  client = new Finger_actionlibClient(Finger_action_address, true);
 
-  // 前往放置位置
-  goStartPose();
+  //全局变量赋初值
+  setStartPose1();
+  setStartPose2();
+  setStartPose3();
+  setStartPose4();
+
+  startPose = startPose1;
   setPlacePose();
+
+  goStartPose();
+
 	
 	/*************************************/
-	/********目标输入*********************/
+  /************输入目标标签***************/
 	/*************************************/
 
-	int cur_target=0;					//当前抓取目标的序号
   ROS_INFO("waiting for tags of targets input in GUI");
   while(getTargetsTag!=1)				//等待抓取目标输入
 	{
-		ros::Duration(0.5).sleep();
+    ros::Duration(0.5).sleep();
 		if(!ros::ok())
 		{
 			detectTarget.data=2;		//让visual_detect节点退出
 			detectTarget_pub.publish(detectTarget);
-      ros::Duration(0.2).sleep();// 时间可以是小数,延时到底要多久?未测试过,原为1.0s
+      ros::Duration(1.0).sleep();
 			return 1;
 		}
 	}
-	getTargetsTag=0;	//等待完毕，getTargetsTag置0
+
 	detectTarget.data=1;		//让visual_detect节点检测目标
 	detectTarget_pub.publish(detectTarget);
-  ros::Duration(0.2).sleep();
-
-
-	/*************************************/
-	/********目标抓取*********************/
-	/*************************************/
-
+  ros::Duration(1.0).sleep();
   ROS_INFO("All ready, waiting for goal.");
-	
-	rviz_teleop_commander::grab_result grabResultMsg;	
 
-  //等待目标传入并执行
-	while(ros::ok())
-	{
-		if(getTargets==1)	//收到视觉检测结果
-		{
-			//判断当前抓取目标是否存在
-      kinova_arm_moveit_demo::targetState curTargetPoint;
+	/*************************************/
+  /***********目标检测与抓取**************/
+	/*************************************/
 
-			//循环抓取
-			int goalState=0;
-			haveGoal(targetsTag,cur_target,curTargetPoint,n,goalState);
 
-			if(goalState==1)  //有要抓取的目标
-			{
-				//发布抓取状态
-				grabResultMsg.now_target=targetsTag[cur_target];
-				grabResultMsg.grab_times=n;
-				grab_result_pub.publish(grabResultMsg);
 
-        //前往抓取并放置物体
-        pickAndPlace(curTargetPoint);
-        goStartPose();// 回到初始视觉检测位置
-        ROS_INFO("Waiting for the next goal.");
-				
-				getTargets=0;		//执行完抓取置0，等待下一次视觉检测结果
-				//让visual_detect节点进行检测
-				detectTarget.data=1;		//让visual_detect节点进行视觉检测
-				detectTarget_pub.publish(detectTarget);
-			}
-			else if(goalState==2)
-			{
-				//让visual_detect节点进行检测
-				detectTarget.data=1;		//让visual_detect节点进行视觉检测
-				detectTarget_pub.publish(detectTarget);
-			}
-			else if(goalState==3)			//所有目标抓取完成
-			{
-        ROS_INFO("There is no goal left.");
-				break;
-			}
-			cur_target++;
-			
-		}
-		ros::Duration(0.2).sleep();
-	}
-	
+  while(ros::ok())
+  {
+    goStartPose();
+
+    kinova_arm_moveit_demo::targetState curTargetPoint;
+
+    bool isExist = 0;                                   //是否存在
+    bool isHinder = 1;                                  //是否有遮挡
+    int curTag = 0;                                     //当前抓取对象
+    int number=targetsTag.size();                       //目标个数
+
+    for(int i=0;i<number;i++)
+    {
+      curTag = targetsTag[i];
+
+      //手抓闭合程度，抓取高度
+      closeVal=closeVals[curTag-1];
+      highVal=highVals[curTag-1];
+      openVal=openVals[curTag-1];
+
+      ROS_INFO("Start to detect target [%d].", curTag);
+      bool targetFinish = false;
+
+      while(!targetFinish)
+      {
+        isExist = judgeIsExist(curTag,targets);
+
+        int times = 0;
+        bool nextTarget = false;
+        while((!isExist)&&(times<(poseChangeTimes+1)))
+        {
+          ROS_INFO("There is no target [%d], change pose to detect again.", curTag);
+          if(times==0) {startPose = startPose2;goStartPose();}
+          if(times==1) {startPose = startPose3;goStartPose();}
+          if(times==2) {startPose = startPose4;goStartPose();}
+          if(times==poseChangeTimes)
+          {
+            ROS_INFO("Detection failed, go to pick the next target.");
+            startPose = startPose1;
+            goStartPose();
+            nextTarget = true;
+            break;
+          }
+          ros::Duration(1.0).sleep();//这里延时一秒够吗
+          isExist = judgeIsExist(curTag,targets);
+          times++;
+        }
+
+        isHinder = judgeIsHinder(curTag,targets);
+
+        while(isExist&&isHinder)//暂时不设置解决遮挡的次数
+        {
+          ROS_INFO("The target [%d] is blocked by others, try to pick up the obstacle.", curTag);
+          curTargetPoint = judgeTheObstacle(curTag,targets);
+          pickTheObstacle(curTargetPoint);
+          placeTheObstacle(curTag,curTargetPoint,targets);
+          goStartPose();
+          ROS_INFO("Try to detect the target [%d] again.", curTag);
+          isExist = 0;//存在位isExist置0,以跳出本循环和跳过下一个while循环
+        }
+
+        while(isExist&&(!isHinder))
+        {
+          ROS_INFO("Got the unblocked target [%d].", curTag);
+
+          double distance;
+          distance = calcDistance(curTargetPoint,kinovaState);
+
+          while(isExist&&(distance>minimumDistance))
+          {
+            curTargetPoint = getTargetPoint(curTag,targets);
+            approachTarget(curTag,curTargetPoint,kinovaState);
+            ROS_INFO("Approaching the target [%d] ...", curTag);
+            ros::Duration(servoCircle).sleep();
+            isExist = judgeIsExist(curTag,targets);
+            distance = calcDistance(curTargetPoint,kinovaState);
+          }
+
+          pickAndPlace(curTargetPoint);
+
+          //判断放置框中是否有目标物体
+          isExist = judgeIsExist(curTag,targets);
+          if(isExist)
+          {
+            targetFinish = true;
+            ROS_INFO("Target [%d] succeeds.", curTag);
+          }
+
+          //判断抓取框中是否已经没有目标物体
+          goStartPose();
+          isExist = judgeIsExist(curTag,targets);
+          if(!isExist)
+          {
+            targetFinish = true;
+            ROS_INFO("Target [%d] succeeds.", curTag);
+          }
+          if(nextTarget) break;
+        }
+      }
+    }
+  }
+
 	//退出程序
 	detectTarget.data=2;		//让visual_detect节点退出
 	detectTarget_pub.publish(detectTarget);
@@ -225,10 +324,8 @@ void detectResultCB(const kinova_arm_moveit_demo::targetsVector &msg)
 	targets.resize(num);
 	for(int i=0; i<num; i++)
 	{
-		targets[i]=msg.targets[i];
-		//ROS_INFO("%d",msg.targets[i].tag);
-		//ROS_INFO("%f %f %f",msg.targets[i].x,msg.targets[i].y,msg.targets[i].z);
-	}
+    targets[i]=msg.targets[i];
+  }
 	getTargets=1;	//接收到视觉定位结果getTargets置1
 }
 //接收targets_tag消息的回调函数，将接收到的消息更新到targetsTag里面
@@ -237,7 +334,6 @@ void tagsCB(const rviz_teleop_commander::targets_tag &msg)
 	int num=msg.targetsTag.size();
   targetsTag.clear();
   targetsTag.resize(num);
-	//int i=0;
   ROS_INFO("Amount of targets = %d",num);
 	for(int i=0; i<num; i++)
 	{
@@ -247,68 +343,7 @@ void tagsCB(const rviz_teleop_commander::targets_tag &msg)
 	getTargetsTag=1;	//接收到需要抓取的目标物的标签
 }
 
-//循环检测当前视觉识别中是否还有要抓取的目标
-void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState)
-{
-	int n_targetsTag=targetsTag.size();	//目标标签个数
-	int n_targets=targets.size();		//检测到的物品的个数
-	cur_target=cur_target%n_targetsTag;
-
-	for(int i=0;i<n_targets;i++)
-	{
-		if(targetsTag[cur_target]==targets[i].tag)
-		{
-			//目标物在相机坐标系下的坐标转机器人坐标系下的坐标
-			Eigen::Vector3d cam_center3d, base_center3d;
-			//仿真计算
-      cam_center3d(0)=(targets[i].px-UV0)*Zw/Fxy;
-      cam_center3d(1)=(targets[i].py-UV0)*Zw/Fxy;
-      cam_center3d(2)=Zw;
-      //ROS_INFO("px py: %d %d",targets[i].px,targets[i].py);
-      //ROS_INFO("cam_center3d: %f %f %f",cam_center3d(0),cam_center3d(1),cam_center3d(2));
-
-			base_center3d=base2eye_r*cam_center3d+base2eye_t;
-			Eigen::Quaterniond quater(targets[i].qw,targets[i].qx,targets[i].qy,targets[i].qz);
-			quater=base2eye_q*quater;
-			//Eigen::Matrix3d tempm=quater.matrix();
-			//ROS_INFO("quater: %f %f %f",curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
-			//cout<<"tempm:"<<endl<<tempm<<endl;
-	
-			//获取当前抓取物品的位置
-			curTargetPoint.x=base_center3d(0);
-			curTargetPoint.y=base_center3d(1)+0.04;
-			curTargetPoint.z=base_center3d(2);
-      //ROS_INFO("curTargetPoint: %f %f %f",curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
-
-			curTargetPoint.qx=quater.x();	
-			curTargetPoint.qy=quater.y();
-			curTargetPoint.qz=quater.z();
-			curTargetPoint.qw=quater.w();
-      ROS_INFO("have goal [%d]",targets[i].tag);
-			//ROS_INFO("%f %f %f %f",curTargetPoint.qx,curTargetPoint.qy,curTargetPoint.qz,curTargetPoint.qw);
-
-			//手抓闭合程度，抓取高度
-      closeVal=closeVals[targetsTag[cur_target]-1];
-      highVal=highVals[targetsTag[cur_target]-1];
-      openVal=openVals[targetsTag[cur_target]-1];
-
-			n++;
-			goalState=1;  	//找到目标
-		}
-	}
-	
-	n++;
-	if(n>N_MAX)
-	{
-		goalState=3;		//没有目标，退出
-	}
-	else
-  {
-    goalState=2;			//当前帧没有要抓取的目标,继续检测
-  }
-}
-
-//手抓控制函数，输入0-1之间的控制量，控制手抓开合程度，0完全张开，1完全闭合 added by yang 20180418
+//手抓控制函数，输入0-1之间的控制量，控制手抓开合程度，0完全张开，1完全闭合
 bool fingerControl(double finger_turn)
 {
   if (finger_turn < 0)
@@ -397,8 +432,7 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
   arm_group.execute(pick_plan);
 
   double tPlan1 = arm_group.getPlanningTime();
-  //ROS_INFO("Planning time is [%lf]s.", tPlan1);
-  ROS_INFO("Go to the goal and prepare for picking .");
+  ROS_INFO("Prepare for picking .");
 
   //抓取动作
   jointValues.push_back(closeVal);
@@ -423,9 +457,7 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
   place_plan.trajectory_ = trajectory2;
   arm_group.execute(place_plan);
 
-  double tPlan2 = arm_group.getPlanningTime();
-  ROS_INFO("Planning time is [%lf]s.", tPlan2);
-  ROS_INFO("Go to the goal and prepare for placing. ");
+  ROS_INFO("Prepare for placing. ");
 
   //松开爪子
   finger_group->setNamedTarget("Open");   //仿真使用
@@ -509,17 +541,112 @@ void setPlacePose()
 //前往放置位置
 void goStartPose()
 {
-  moveit::planning_interface::MoveGroupInterface arm_group("arm");	//manipulator
-	std::vector< double > jointValues;
-  // 手动设置
-  jointValues.push_back(-2.33038);
-  jointValues.push_back(2.42892);
-  jointValues.push_back(3.49546);
-  jointValues.push_back(1.81877);
-  jointValues.push_back(2.89536);
-  jointValues.push_back(1.97723);
-  jointValues.push_back(-14.52231);
-  
-  arm_group.setJointValueTarget(jointValues);
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");
+  arm_group.setJointValueTarget(startPose);
   arm_group.move();
 }
+
+void setStartPose1()
+{
+  startPose1.clear();
+  startPose1.push_back(-2.33038);
+  startPose1.push_back(2.42892);
+  startPose1.push_back(3.49546);
+  startPose1.push_back(1.81877);
+  startPose1.push_back(2.89536);
+  startPose1.push_back(1.97723);
+  startPose1.push_back(-14.52231);
+}
+void setStartPose2()
+{
+  startPose2.clear();
+  startPose2.push_back(-2.33038);
+  startPose2.push_back(2.42892);
+  startPose2.push_back(3.49546);
+  startPose2.push_back(1.81877);
+  startPose2.push_back(2.89536);
+  startPose2.push_back(1.97723);
+  startPose2.push_back(-14.52231);
+}
+void setStartPose3()
+{
+  startPose3.clear();
+  startPose3.push_back(-2.33038);
+  startPose3.push_back(2.42892);
+  startPose3.push_back(3.49546);
+  startPose3.push_back(1.81877);
+  startPose3.push_back(2.89536);
+  startPose3.push_back(1.97723);
+  startPose3.push_back(-14.52231);
+}
+void setStartPose4()
+{
+  startPose4.clear();
+  startPose4.push_back(-2.33038);
+  startPose4.push_back(2.42892);
+  startPose4.push_back(3.49546);
+  startPose4.push_back(1.81877);
+  startPose4.push_back(2.89536);
+  startPose4.push_back(1.97723);
+  startPose4.push_back(-14.52231);
+}
+
+kinova_arm_moveit_demo::targetState transCamera2Robot(kinova_arm_moveit_demo::targetState targetBeforeTrans, sensor_msgs::JointState curState)
+{
+  //待修改,缺获取kinova末端笛卡尔位姿的函数
+
+  //目标物在相机坐标系下的坐标转机器人坐标系下的坐标
+  Eigen::Vector3d cam_center3d, base_center3d;
+  kinova_arm_moveit_demo::targetState targetAfterTrans;
+
+  // targets,UV0,Zw,Fxy都是全局变量
+  cam_center3d(0)=(targetBeforeTrans.px-UV0)*Zw/Fxy;
+  cam_center3d(1)=(targetBeforeTrans.py-UV0)*Zw/Fxy;
+  cam_center3d(2)=Zw;
+
+  base_center3d=base2eye_r*cam_center3d+base2eye_t;
+
+  Eigen::Quaterniond quater(targetBeforeTrans.qw,targetBeforeTrans.qx,targetBeforeTrans.qy,targetBeforeTrans.qz);
+  quater=base2eye_q*quater;
+
+  //获取当前抓取物品的位置
+  targetAfterTrans.x=base_center3d(0);
+  targetAfterTrans.y=base_center3d(1)+0.04;
+  targetAfterTrans.z=base_center3d(2);
+  targetAfterTrans.qx=quater.x();
+  targetAfterTrans.qy=quater.y();
+  targetAfterTrans.qz=quater.z();
+  targetAfterTrans.qw=quater.w();
+
+  return targetAfterTrans;
+}
+
+void getRobotInfo(sensor_msgs::JointState curState)
+{
+  kinovaState = curState;
+}
+
+//判断目标物体是否存在
+bool judgeIsExist(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+
+//判断目标物体是否被遮挡
+bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+
+//获取遮挡物体的位置
+kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+
+//拾取遮挡物体
+void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow){}
+
+//放置遮挡物体
+void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+
+//计算与目标物体的绝对距离
+double calcDistance(kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState){}
+
+//获取当前目标对象的位置
+kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+
+//接近目标物体
+void approachTarget(int tag, kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState){}
+
