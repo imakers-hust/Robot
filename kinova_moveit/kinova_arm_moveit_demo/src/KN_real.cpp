@@ -38,9 +38,9 @@ bool getTargetsTag=0;                             	//当接收到需要抓取的
 #define UV0 400.5
 #define Zw 0.77
 //手眼关系
-Eigen::Matrix3d base2eye_r;
-Eigen::Vector3d base2eye_t;
-Eigen::Quaterniond base2eye_q;
+Eigen::Matrix3d hand2eye_r;
+Eigen::Vector3d hand2eye_t;
+Eigen::Quaterniond hand2eye_q;
 
 //-------------------------------------------------手爪相关------------------------------------------------
 //手指client类型自定义
@@ -48,6 +48,8 @@ typedef actionlib::SimpleActionClient<kinova_msgs::SetFingersPositionAction> Fin
 //定义机器人类型
 string kinova_robot_type = "j2s7s300";
 string Finger_action_address = "/" + kinova_robot_type + "_driver/fingers_action/finger_positions";    //手指控制服务器的名称
+string base_frame = "j2s7s300_link_base";// tf中基坐标系的名称
+string tool_frame = "j2s7s300_link_7";// tf中工具坐标系的名称
 //定义手指控制client
 Finger_actionlibClient* client=NULL;
 //爪子开闭程度
@@ -71,7 +73,7 @@ void detectResultCB(const kinova_arm_moveit_demo::targetsVector &msg);
 void tagsCB(const rviz_teleop_commander::targets_tag &msg);
 
 //循环检测当前视觉识别中是否还有要抓取的目标
-void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState);
+void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState, const tf2_ros::Buffer &tfBuffer_);
 
 //手抓控制函数，输入0-1之间的控制量，控制手抓开合程度，0完全张开，1完全闭合
 bool fingerControl(double finger_turn);
@@ -90,6 +92,9 @@ void setPlacePose();
 
 //前往放置位置
 void goPlacePose(geometry_msgs::Pose placePose);
+
+// 获得机器人工具坐标系到基坐标系的转换关系
+int getTransBase2hand(const tf2_ros::Buffer& tfBuffer_, Eigen::Matrix3d& trans_r, Eigen::Vector3d& trans_t);
 
 
 // -------------------------------------------------主程序入口-------------------------------------------------
@@ -111,15 +116,18 @@ int main(int argc, char **argv)
 	ros::Publisher grab_result_pub = node_handle.advertise<rviz_teleop_commander::grab_result>("grab_result", 1);  //发布抓取状态
   ros::Subscriber detectResult_sub = node_handle.subscribe("detect_result", 1, detectResultCB);    //接收visual_detect检测结果
 	ros::Subscriber tags_sub = node_handle.subscribe("targets_tag", 1, tagsCB);				//接收要抓取的目标 qcrong
+  //获取工具坐标系
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);  //获取机械臂末端在基坐标系下的位姿
     
 	int n=0;		//记录对同一目标抓取的次数
 	std_msgs::Int8 detectTarget;
 	//手眼关系赋值
-  base2eye_r<<0.02775470241621737, -0.9983886629987773, 0.04949491417900936,
+  hand2eye_r<<0.02775470241621737, -0.9983886629987773, 0.04949491417900936,
         -0.9984233782515894, -0.03010426443992026, -0.04737458839529671,
           0.04878826198507039, -0.04810198253680015, -0.9976501245313218;
-  base2eye_t<<-0.4961986013429963,-0.6043712289857819,0.7137581412140669;
-  base2eye_q=base2eye_r;
+  hand2eye_t<<-0.4961986013429963,-0.6043712289857819,0.7137581412140669;
+  hand2eye_q=hand2eye_r;
 	
   setPlacePose();
   goPlacePose(placePose);
@@ -162,7 +170,7 @@ int main(int argc, char **argv)
 			kinova_arm_moveit_demo::targetState curTargetPoint;    //当前抓取点的xyz,后续考虑加姿态
 			//循环抓取
 			int goalState=0;
-			haveGoal(targetsTag,cur_target,curTargetPoint,n,goalState);
+      haveGoal(targetsTag,cur_target,curTargetPoint,n,goalState,tfBuffer);
 			if(goalState==1)  //有要抓取的目标
 			{
 				//发布抓取状态
@@ -242,7 +250,7 @@ void tagsCB(const rviz_teleop_commander::targets_tag &msg)
 
 
 //循环检测当前视觉识别中是否还有要抓取的目标
-void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState)
+void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_demo::targetState& curTargetPoint, int& n, int& goalState, const tf2_ros::Buffer& tfBuffer_)
 {
 	int n_targetsTag=targetsTag.size();	//目标标签个数
 	int n_targets=targets.size();		//检测到的物品的个数
@@ -256,12 +264,24 @@ void haveGoal(const vector<int>& targetsTag, int& cur_target, kinova_arm_moveit_
       cam_center3d(0)=targets[i].x;
       cam_center3d(1)=targets[i].y;
       cam_center3d(2)=targets[i].z;
-			base_center3d=base2eye_r*cam_center3d+base2eye_t;
+      base_center3d=hand2eye_r*cam_center3d+hand2eye_t;
 			Eigen::Quaterniond quater(targets[i].qw,targets[i].qx,targets[i].qy,targets[i].qz);
-			quater=base2eye_q*quater;
+      quater=hand2eye_q*quater;
 			//Eigen::Matrix3d tempm=quater.matrix();
 			//ROS_INFO("quater: %f %f %f",curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
 			//cout<<"tempm:"<<endl<<tempm<<endl;
+
+      //目标物从工具坐标系转到基坐标系下
+      Eigen::Matrix3d base2hand_r;
+      Eigen::Vector3d base2hand_t;
+      Eigen::Quaterniond base2hand_q;
+
+      // 用tf给转换赋值
+      getTransBase2hand(tfBuffer_,base2hand_r,base2hand_t);
+      base2hand_q=base2hand_r;
+
+      base_center3d=base2hand_r*base_center3d+base2hand_t;
+      quater=base2hand_q*quater;
 	
 			//获取当前抓取物品的位置
 			curTargetPoint.x=base_center3d(0);
@@ -495,4 +515,32 @@ void goPlacePose(geometry_msgs::Pose placePose)
   jointValues.push_back(5.58057);
   arm_group.setJointValueTarget(jointValues);
   arm_group.move();
+}
+
+int getTransBase2hand(const tf2_ros::Buffer& tfBuffer_, Eigen::Matrix3d& trans_r, Eigen::Vector3d& trans_t)
+{
+  geometry_msgs::TransformStamped transformStamped;
+  try
+  {
+    transformStamped = tfBuffer_.lookupTransform( base_frame, tool_frame, ros::Time(0),ros::Duration(0.5));
+  }
+  catch (tf2::TransformException &ex)
+  {
+    ROS_WARN("%s",ex.what());
+    return -1;
+  }
+
+  Quaterniond rotQ(transformStamped.transform.rotation.w,
+                  transformStamped.transform.rotation.x,
+                  transformStamped.transform.rotation.y,
+                  transformStamped.transform.rotation.z);
+
+  trans_r=rotQ.matrix();
+
+  trans_t<<transformStamped.transform.translation.x,
+            transformStamped.transform.translation.y,
+            transformStamped.transform.translation.z;
+
+  return 0;
+
 }
