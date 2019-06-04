@@ -19,9 +19,24 @@
 
   <xacro:include filename="$(find kinova_description)/urdf/j2n6s300.xacro"/>
 
+  <xacro:include filename="$(find table_board_fix)/urdf/table.urdf.xacro" />
+
+
+
+
+<!-- joint -->
+
+ <!--
+  <joint name="robot_fix" type="fixed">
+    <parent link="table" />
+    <child  link="root"  />  
+    <origin rpy="0.0 0.0 3.14" xyz="0.0 2 0.0"/>
+  </joint>
+-->
+
   <link name="root">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="0 5 0" rpy="0 0 0" />
       <geometry>
         <box size = "0.01 0.01 0.01"/>
       </geometry>
@@ -41,7 +56,7 @@
 
   <joint name="connect_root_and_world" type="fixed">
     <child link="root" />
-    <parent link="world" />
+    <parent link="table" />
     <origin xyz="0 0 0" rpy="0 0 0" />
   </joint>
 

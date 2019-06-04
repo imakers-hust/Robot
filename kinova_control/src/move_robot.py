@@ -9,7 +9,7 @@ import argparse
 def argumentParser(argument):
   """ Argument parser """
   parser = argparse.ArgumentParser(description='Drive robot joint to command position')
-  parser.add_argument('kinova_robotType', metavar='kinova_robotType', type=str, default='j2n6a300',
+  parser.add_argument('kinova_robotType', metavar='kinova_robotType', type=str, default='j2s7s300',nargs='?',
                     help='kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2n6a300 refers to jaco v2 6DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.')
   #args_ = parser.parse_args(argument)
   argv = rospy.myargv()
@@ -64,7 +64,7 @@ def moveFingers (jointcmds,prefix,nbJoints):
 if __name__ == '__main__':
   try:    
     rospy.init_node('move_robot_using_trajectory_msg')		
-    prefix, nbJoints, nbfingers = argumentParser(None)    
+    prefix, nbJoints, nbfingers = argumentParser('j2s7s300')    
     #allow gazebo to launch
     rospy.sleep(1)
 
@@ -73,7 +73,10 @@ if __name__ == '__main__':
       moveJoint ([0.0,2.9,1.3,4.2,1.4,0.0],prefix,nbJoints)
     else:
       moveJoint ([0.0,2.9,0.0,1.3,4.2,1.4,0.0],prefix,nbJoints)
+      moveJoint ([0.5,2.9,0.0,1.3,4.0,1.0,0.0],prefix,nbJoints)
+      moveJoint ([1.0,2.9,0.0,1.3,4.0,1.0,0.0],prefix,nbJoints)
+     
 
-    moveFingers ([1,1,1],prefix,nbfingers)
+    #moveFingers ([1,1,1],prefix,nbfingers)
   except rospy.ROSInterruptException:
     print "program interrupted before completion"
