@@ -7,6 +7,7 @@
 #include <kinova_msgs/SetFingersPositionAction.h>
 #include <iostream>
 #include <vector>
+#include <tf2_ros/transform_listener.h>
 //手指控制
 #include "kinova_driver/kinova_tool_pose_action.h"
 #include "kinova_driver/kinova_joint_angles_action.h"
@@ -46,14 +47,16 @@ double servoCircle = 0.5;                           //伺服运动周期,单位�
 #define UV0 400.5
 #define Zw 0.77
 //手眼关系定义--赋值在main函数中
-Eigen::Matrix3d base2eye_r;
-Eigen::Vector3d base2eye_t;
-Eigen::Quaterniond base2eye_q;
+Eigen::Matrix3d hand2eye_r;
+Eigen::Vector3d hand2eye_t;
+Eigen::Quaterniond hand2eye_q;
 
 //-------------------------------------------------机器人相关------------------------------------------------
 //定义机器人类型
 string kinova_robot_type = "j2s7s300";
 string Finger_action_address = "/" + kinova_robot_type + "_driver/fingers_action/finger_positions";    //手指控制服务器的名称
+string base_frame = "base_link";// tf中基坐标系的名称
+string tool_frame = "wrist_3_link";// tf中工具坐标系的名称
 //手指client类型自定义
 typedef actionlib::SimpleActionClient<kinova_msgs::SetFingersPositionAction> Finger_actionlibClient;
 //定义手指控制client
@@ -91,7 +94,6 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
 
 //设置机械臂放置位置
 void setPlacePose();
-
 void setStartPose1();
 void setStartPose2();
 void setStartPose3();
@@ -99,9 +101,6 @@ void setStartPose4();
 
 //前往视觉识别初始位置
 void goStartPose();
-
-//相机识别到的物体位姿转换到机器人基座标系下
-kinova_arm_moveit_demo::targetState transCamera2Robot(kinova_arm_moveit_demo::targetState targetBeforeTrans, sensor_msgs::JointState curState);
 
 //获取机器人当前信息
 void getRobotInfo(sensor_msgs::JointState curState);
@@ -116,13 +115,13 @@ bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAl
 kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
 
 //拾取遮挡物体
-void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow);
+void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow, const tf2_ros::Buffer& tfBuffer_);
 
 //放置遮挡物体
-void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll);
+void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll, const tf2_ros::Buffer& tfBuffer_);
 
 //计算与目标物体的绝对距离
-double calcDistance(kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState);
+double calcDistance(kinova_arm_moveit_demo::targetState targetNow);
 
 //获取当前目标对象的位置
 kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll);
@@ -130,6 +129,8 @@ kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_mo
 //接近目标物体
 void approachTarget(int tag,kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState);
 
+//相机识别到的物体位姿转换到机器人基座标系下
+kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_, kinova_arm_moveit_demo::targetState targetNow);
 
 // -------------------------------------------------主程序入口-----------------------------------------------
 int main(int argc, char **argv)
@@ -151,12 +152,16 @@ int main(int argc, char **argv)
   rviz_teleop_commander::grab_result grabResultMsg;
 	std_msgs::Int8 detectTarget;
 
+  //获取工具坐标系
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);  //获取机械臂末端在基坐标系下的位姿
+
   //手眼关系赋值
-  base2eye_r<<-1, 0, 0,
+  hand2eye_r<<-1, 0, 0,
                0, 1, 0,
                0, 0, -1;
-  base2eye_t<<0.321,0.43,0.8;
-  base2eye_q=base2eye_r;
+  hand2eye_t<<0.321,0.43,0.8;
+  hand2eye_q=hand2eye_r;
   client = new Finger_actionlibClient(Finger_action_address, true);
 
   //全局变量赋初值
@@ -253,8 +258,8 @@ int main(int argc, char **argv)
         {
           ROS_INFO("The target [%d] is blocked by others, try to pick up the obstacle.", curTag);
           curTargetPoint = judgeTheObstacle(curTag,targets);
-          pickTheObstacle(curTargetPoint);
-          placeTheObstacle(curTag,curTargetPoint,targets);
+          pickTheObstacle(curTargetPoint,tfBuffer);
+          placeTheObstacle(curTag,curTargetPoint,targets,tfBuffer);
           goStartPose();
           ROS_INFO("Try to detect the target [%d] again.", curTag);
           isExist = 0;//存在位isExist置0,以跳出本循环和跳过下一个while循环
@@ -265,7 +270,7 @@ int main(int argc, char **argv)
           ROS_INFO("Got the unblocked target [%d].", curTag);
 
           double distance;
-          distance = calcDistance(curTargetPoint,kinovaState);
+          distance = calcDistance(curTargetPoint);
 
           while(isExist&&(distance>minimumDistance))
           {
@@ -274,7 +279,7 @@ int main(int argc, char **argv)
             ROS_INFO("Approaching the target [%d] ...", curTag);
             ros::Duration(servoCircle).sleep();
             isExist = judgeIsExist(curTag,targets);
-            distance = calcDistance(curTargetPoint,kinovaState);
+            distance = calcDistance(curTargetPoint);
           }
 
           pickAndPlace(curTargetPoint);
@@ -591,62 +596,346 @@ void setStartPose4()
   startPose4.push_back(-14.52231);
 }
 
-kinova_arm_moveit_demo::targetState transCamera2Robot(kinova_arm_moveit_demo::targetState targetBeforeTrans, sensor_msgs::JointState curState)
-{
-  //待修改,缺获取kinova末端笛卡尔位姿的函数
-
-  //目标物在相机坐标系下的坐标转机器人坐标系下的坐标
-  Eigen::Vector3d cam_center3d, base_center3d;
-  kinova_arm_moveit_demo::targetState targetAfterTrans;
-
-  // targets,UV0,Zw,Fxy都是全局变量
-  cam_center3d(0)=(targetBeforeTrans.px-UV0)*Zw/Fxy;
-  cam_center3d(1)=(targetBeforeTrans.py-UV0)*Zw/Fxy;
-  cam_center3d(2)=Zw;
-
-  base_center3d=base2eye_r*cam_center3d+base2eye_t;
-
-  Eigen::Quaterniond quater(targetBeforeTrans.qw,targetBeforeTrans.qx,targetBeforeTrans.qy,targetBeforeTrans.qz);
-  quater=base2eye_q*quater;
-
-  //获取当前抓取物品的位置
-  targetAfterTrans.x=base_center3d(0);
-  targetAfterTrans.y=base_center3d(1)+0.04;
-  targetAfterTrans.z=base_center3d(2);
-  targetAfterTrans.qx=quater.x();
-  targetAfterTrans.qy=quater.y();
-  targetAfterTrans.qz=quater.z();
-  targetAfterTrans.qw=quater.w();
-
-  return targetAfterTrans;
-}
-
 void getRobotInfo(sensor_msgs::JointState curState)
 {
   kinovaState = curState;
 }
 
 //判断目标物体是否存在
-bool judgeIsExist(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+bool judgeIsExist(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
+{
+  int num = targetAll.size();
+  bool result = false;
+
+  for(int i=0;i<num;i++)
+  {
+    if(tag==targetAll[i].tag)
+    {
+      result = true;
+      break;
+    }
+  }
+  return result;
+}
 
 //判断目标物体是否被遮挡
-bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
+{
+  // 根据目标物道相机的距离判断
+  // 基于targetAll中的坐标在相机坐标系下的前提
+  int num = targetAll.size();
+  bool result = false;
+  double distance[num];
+  double targetDistance;
+
+  for(int i=0;i<num;i++)
+  {
+    distance[i] = targetAll[i].x*targetAll[i].x + targetAll[i].y*targetAll[i].y + targetAll[i].z*targetAll[i].z;
+    if(tag==targetAll[i].tag)
+    {
+      targetDistance = distance[i];
+    }
+  }
+
+  for(int i=0;i<num;i++)
+  {
+    if(distance[num]<targetDistance)
+    {
+      result = true;
+    }
+  }
+  return result;
+}
 
 //获取遮挡物体的位置
-kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
+{
+  // 从所有遮挡物中,先取出离相机最近的那个
+  int num = targetAll.size();
+  int obstacleTag;
+  double distance[num];
+  double targetDistance;
+
+  for(int i=0;i<num;i++)
+  {
+    distance[i] = targetAll[i].x*targetAll[i].x + targetAll[i].y*targetAll[i].y + targetAll[i].z*targetAll[i].z;
+    if(tag==targetAll[i].tag)
+    {
+      targetDistance = distance[i];
+    }
+  }
+
+  for(int i=0;i<num;i++)
+  {
+    if(distance[num]<targetDistance)
+    {
+      targetDistance = distance[num];
+      obstacleTag = i;
+    }
+  }
+
+  return targetAll[obstacleTag];
+}
 
 //拾取遮挡物体
-void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow){}
+void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow, const tf2_ros::Buffer& tfBuffer_)
+{
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");	//kinova
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
+  kinova_arm_moveit_demo::targetState targetReal;
+  geometry_msgs::Pose poseStart;
+  geometry_msgs::Pose targetPose;	//定义抓取位姿
+
+  // 把目标物体坐标转换到机器人坐标系下
+  targetReal = transTarget(tfBuffer_, targetNow);
+  targetPose.position.x = targetReal.x;
+  targetPose.position.y = targetReal.y;
+  targetPose.position.z = targetReal.z;
+  targetPose.orientation.x = targetReal.qx;
+  targetPose.orientation.y = targetReal.qy;
+  targetPose.orientation.z = targetReal.qz;
+  targetPose.orientation.w = targetReal.qw;
+
+  // 转换startPose(vector(double))为poseStart(geometry_msgs::Pose)
+  poseStart.position.x = startPose[0];
+  poseStart.position.y = startPose[1];
+  poseStart.position.z = startPose[2];
+  poseStart.orientation.x = startPose[3];
+  poseStart.orientation.y = startPose[4];
+  poseStart.orientation.z = startPose[5];
+  poseStart.orientation.w = startPose[6];
+
+  // 抓取路径插值并执行抓取
+  std::vector<geometry_msgs::Pose> pickWayPoints;
+  pickWayPoints = pickInterpolate(poseStart, targetPose);
+
+  //前往抓取障碍物体
+  moveit_msgs::RobotTrajectory trajectory1;
+  arm_group.computeCartesianPath(pickWayPoints,
+                                 0.02,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  pick_plan.trajectory_ = trajectory1;
+  arm_group.execute(pick_plan);
+
+  //松开爪子
+  finger_group->setNamedTarget("Close");   //仿真使用
+  finger_group->move();
+}
 
 //放置遮挡物体
-void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll, const tf2_ros::Buffer& tfBuffer_)
+{
+  // 判断将遮挡物体放在哪里比较合适
+  // 算法为,选中一个与其他所有物体的距离平方之和最大的物体A
+  // 判断距离A物体最近的物体B,若B不是我们本轮的抓取对象,则将障碍物置于AB的中点
+  // 若B是本轮的抓取对象,则选取距离A第二近的物体C,障碍物置于AC的中点
+  // 若场上仅有障碍物与目标物,则平移五公分
+  int num = targetAll.size();
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");	//kinova
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  moveit::planning_interface::MoveGroupInterface::Plan place_plan;
+  kinova_arm_moveit_demo::targetState targetReal;
+  kinova_arm_moveit_demo::targetState targetTemp;
+  geometry_msgs::Pose targetPose;	//定义抓取位姿
+  geometry_msgs::Pose nowPose;	//定义抓取位姿
+
+  nowPose.position.x = targetNow.x;
+  nowPose.position.y = targetNow.y;
+  nowPose.position.z = targetNow.z; // 抬升10cm再放下
+  nowPose.orientation.x = targetNow.qx;
+  nowPose.orientation.y = targetNow.qy;
+  nowPose.orientation.z = targetNow.qz;
+  nowPose.orientation.w = targetNow.qw;
+
+  double coordinates[num][2];
+
+  // 只有目标物和障碍物的情况
+  if(num == 2)
+  {
+    for(int i=0;i<2;i++)
+    {
+      if(targetAll[i].tag==tag)continue;
+      targetReal = transTarget(tfBuffer_, targetAll[i]);
+    }
+    targetPose.position.x = targetReal.x + 0.02;
+    targetPose.position.y = targetReal.y + 0.02;
+    targetPose.position.z = targetReal.z + 0.2; // 抬升10cm再放下
+    targetPose.orientation.x = targetReal.qx;
+    targetPose.orientation.y = targetReal.qy;
+    targetPose.orientation.z = targetReal.qz;
+    targetPose.orientation.w = targetReal.qw;
+  }
+
+  // 场上存在三个以上物体的情况
+  else
+  {
+    // 选出物体A
+    double maxSum = 0;
+    double nowSum;
+    double fastTag;
+    for(int i=0;i<num;i++)
+    {
+      targetReal = transTarget(tfBuffer_, targetAll[i]);
+      coordinates[i][0] = targetReal.x;
+      coordinates[i][1] = targetReal.y;
+      nowSum = 0;
+      for(int j=0;j<(num);j++)
+      {
+        if(j!=i)
+        {
+          targetTemp = transTarget(tfBuffer_, targetAll[j]);
+          nowSum = (targetTemp.x-coordinates[i][0])*(targetTemp.x-coordinates[i][0]);
+          nowSum = nowSum + (targetTemp.y-coordinates[i][1])*(targetTemp.y-coordinates[i][1]);
+        }
+      }
+      if(nowSum>maxSum)
+      {
+        maxSum = nowSum;
+        fastTag = i;
+      }
+    }
+
+    // 选出物体B/C
+    double miniSum = 1000000;
+    double nearTag;
+    targetReal = transTarget(tfBuffer_, targetAll[fastTag]);
+    for(int i=0;i<num;i++)
+    {
+      if(i==tag) continue;
+
+      nowSum = 0;
+      targetTemp = transTarget(tfBuffer_, targetAll[i]);
+      nowSum = (targetTemp.x-coordinates[i][0])*(targetTemp.x-coordinates[i][0]);
+      nowSum = nowSum + (targetTemp.y-coordinates[i][1])*(targetTemp.y-coordinates[i][1]);
+      if(nowSum<miniSum)
+      {
+        miniSum = nowSum;
+        nearTag = i;
+      }
+    }
+
+    // 计算AB / AC 的中心位置
+    kinova_arm_moveit_demo::targetState targetA;
+    kinova_arm_moveit_demo::targetState targetB;
+
+    targetA = transTarget(tfBuffer_,targetAll[fastTag]);
+    targetB = transTarget(tfBuffer_,targetAll[nearTag]);
+
+    targetPose.position.x = (targetA.x + targetB.x)/2;
+    targetPose.position.y = (targetA.y + targetB.y)/2;
+    targetPose.position.z = (targetA.z + targetB.z)/2; + 0.2; // 抬升10cm再放下
+    targetPose.orientation.x = targetA.qx;
+    targetPose.orientation.y = targetA.qy;
+    targetPose.orientation.z = targetA.qz;
+    targetPose.orientation.w = targetA.qw;
+  }
+
+  //前往放置障碍物体--执行targetPose
+  std::vector<geometry_msgs::Pose> placeWayPoints;
+  placeWayPoints = placeInterpolate(nowPose, targetPose);
+  moveit_msgs::RobotTrajectory trajectory1;
+  arm_group.computeCartesianPath(placeWayPoints,
+                                 0.02,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  place_plan.trajectory_ = trajectory1;
+  arm_group.execute(place_plan);
+
+  //松开爪子
+  finger_group->setNamedTarget("Open");   //仿真使用
+  finger_group->move();
+}
 
 //计算与目标物体的绝对距离
-double calcDistance(kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState){}
+double calcDistance(kinova_arm_moveit_demo::targetState targetNow)
+{
+  double distance = 0;
+  distance = targetNow.x*targetNow.x + targetNow.y*targetNow.y + targetNow.z*targetNow.z;
+  return distance;
+}
 
 //获取当前目标对象的位置
-kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll){}
+kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
+{
+  int num = targetAll.size();
+  int targetTag;
+
+  for(int i=0;i<num;i++)
+  {
+    if(tag==targetAll[i].tag)
+    {
+      targetTag = i;
+    }
+  }
+  return targetAll[targetTag];
+}
 
 //接近目标物体
-void approachTarget(int tag, kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState){}
+void approachTarget(int tag, kinova_arm_moveit_demo::targetState targetNow, sensor_msgs::JointState robotState)
+{
+  // 速度控制--------------------------------------------------------------------------------------待补充
+}
 
+kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_, kinova_arm_moveit_demo::targetState targetNow)
+{
+  kinova_arm_moveit_demo::targetState transResult;
+  Eigen::Vector3d cam_center3d, base_center3d;
+
+  cam_center3d(0)=targetNow.x;
+  cam_center3d(1)=targetNow.y;
+  cam_center3d(2)=targetNow.z;
+
+  base_center3d=hand2eye_r*cam_center3d+hand2eye_t;
+  Eigen::Quaterniond quater(targetNow.qw,targetNow.qx,targetNow.qy,targetNow.qz);
+  quater=hand2eye_q*quater;
+
+  //用tf来计算base2hand--------------------------------------
+  Eigen::Matrix3d base2hand_r;
+  Eigen::Vector3d base2hand_t;
+  Eigen::Quaterniond base2hand_q;
+  geometry_msgs::TransformStamped transformStamped;
+  try
+  {
+    transformStamped = tfBuffer_.lookupTransform(base_frame, tool_frame, ros::Time(0),ros::Duration(0.5));
+  }
+  catch (tf2::TransformException &ex)
+  {
+    ROS_WARN("%s",ex.what());
+  }
+
+  Quaterniond rotQ(transformStamped.transform.rotation.w,
+                   transformStamped.transform.rotation.x,
+                   transformStamped.transform.rotation.y,
+                   transformStamped.transform.rotation.z);
+
+  base2hand_r=rotQ.matrix();
+
+  base2hand_t<<transformStamped.transform.translation.x,
+           transformStamped.transform.translation.y,
+           transformStamped.transform.translation.z;
+  base2hand_q=base2hand_r;
+  // 计算完毕-------------------------------------------------
+
+  //目标物从工具坐标系转到基坐标系下
+  base_center3d=base2hand_r*base_center3d+base2hand_t;
+  quater=base2hand_q*quater;
+
+  //获取当前抓取物品的位置
+  transResult.x=base_center3d(0);
+  transResult.y=base_center3d(1)+0.04;
+  transResult.z=base_center3d(2);
+  ROS_INFO("curTargetPoint: %f %f %f",transResult.x,transResult.y,transResult.z);
+
+  transResult.qx=quater.x();
+  transResult.qy=quater.y();
+  transResult.qz=quater.z();
+  transResult.qw=quater.w();
+
+  return transResult;
+}
