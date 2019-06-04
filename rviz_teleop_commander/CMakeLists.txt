@@ -4,9 +4,10 @@
 ## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 2.8.3)
 project(rviz_teleop_commander)
-set (Qt5QtCore_DIR /usr/lib/x86_64-linux-gnu/cmake)
+
 #set(Qt5Widgets_DIR /usr/lib/x86_64-linux-gnu)
-set(Qt5Widgets_DIR /home/petori/Qt5.12.1/5.12.1/gcc_64/lib/cmake/Qt5Widgets)
+set(Qt5Widgets_DIR /home/expo/Qt5.12.1/5.12.1/gcc_64/lib/cmake/Qt5Widgets)
+
 find_package(catkin REQUIRED 
              COMPONENTS 
              rviz 
