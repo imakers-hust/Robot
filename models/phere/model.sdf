@@ -24,10 +24,6 @@
             <uri>model://phere/phere.dae</uri>
           </mesh>
         </geometry>
-        <material>
-            <script>Gazebo/Red</script>
-        </material>
-
       </collision>
 
       <visual name="visual">

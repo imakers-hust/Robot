@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.79.0 commit date:2018-03-22, commit time:14:10, hash:f4dc9f9d68b</authoring_tool>
     </contributor>
-    <created>2019-06-15T22:30:21</created>
-    <modified>2019-06-15T22:30:21</modified>
+    <created>2019-06-24T22:43:13</created>
+    <modified>2019-06-24T22:43:13</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -101,47 +101,94 @@
       </extra>
     </light>
   </library_lights>
-  <library_images/>
+  <library_images>
+    <image id="__jpg" name="__jpg">
+      <init_from>8.jpg</init_from>
+    </image>
+  </library_images>
+  <library_effects>
+    <effect id="材质_003-effect">
+      <profile_COMMON>
+        <newparam sid="__jpg-surface">
+          <surface type="2D">
+            <init_from>__jpg</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="__jpg-sampler">
+          <sampler2D>
+            <source>__jpg-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <phong>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">1 1 1 1</color>
+            </ambient>
+            <diffuse>
+              <texture texture="__jpg-sampler"/>
+            </diffuse>
+            <specular>
+              <color sid="specular">0.5 0.5 0.5 1</color>
+            </specular>
+            <shininess>
+              <float sid="shininess">50</float>
+            </shininess>
+            <index_of_refraction>
+              <float sid="index_of_refraction">1</float>
+            </index_of_refraction>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_materials>
+    <material id="材质_003-material" name="材质_003">
+      <instance_effect url="#材质_003-effect"/>
+    </material>
+  </library_materials>
   <library_geometries>
-    <geometry id="six_prism-mesh" name="six prism">
+    <geometry id="he_prisms-mesh" name="he prisms">
       <mesh>
-        <source id="six_prism-mesh-positions">
-          <float_array id="six_prism-mesh-positions-array" count="48">0.01344496 0.05363696 0.15 0.04344499 0.05363696 0.15 0.01344496 0.05363696 0 0.04344499 0.05363696 0 0 0.02681845 0.15 0 0.02681845 0 0.01344496 0 0.15 0.01344496 0 0 0 0.02681845 0 0.04344499 0 0.15 0.04344499 0 0 0.01344496 0 0 0.05689001 0.02681845 0.15 0.05689001 0.02681845 0 0.04344499 0 0 0.05689001 0.02681845 0</float_array>
+        <source id="he_prisms-mesh-positions">
+          <float_array id="he_prisms-mesh-positions-array" count="48">30 75 12.99038 22.5 75 25.98076 30 0 12.99038 22.5 0 25.98076 22.5 75 0 22.5 0 0 30 0 12.99038 7.5 75 0 7.5 0 0 22.5 0 0 0 75 12.99038 0 0 12.99038 7.5 0 0 7.5 75 25.98076 7.5 0 25.98076 0 0 12.99038</float_array>
           <technique_common>
-            <accessor source="#six_prism-mesh-positions-array" count="16" stride="3">
+            <accessor source="#he_prisms-mesh-positions-array" count="16" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <source id="six_prism-mesh-normals">
-          <float_array id="six_prism-mesh-normals-array" count="30">0 1 0 -0.8939499 0.4481669 0 -0.8939499 -0.4481669 0 0 -1 0 0.8939499 -0.4481671 0 0.89395 -0.4481667 0 0.89395 0.4481667 0 0.8939499 0.4481671 0 0 0 1 0 0 -1</float_array>
+        <source id="he_prisms-mesh-normals">
+          <float_array id="he_prisms-mesh-normals-array" count="30">0.8660254 0 0.5000001 0.8660254 0 0.5000002 0.8660253 0 -0.5000001 0 0 -1 -0.8660255 0 -0.5000001 -0.8660253 0 0.5000001 -0.8660255 0 0.5 0 0 1 0 1 0 0 -1 0</float_array>
           <technique_common>
-            <accessor source="#six_prism-mesh-normals-array" count="10" stride="3">
+            <accessor source="#he_prisms-mesh-normals-array" count="10" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <source id="six_prism-mesh-map-0">
-          <float_array id="six_prism-mesh-map-0-array" count="120">0.8699185 2.26196e-4 0.7250453 2.26196e-4 0.8699185 0.7245929 0.8699185 0.7245929 0.7250453 2.26196e-4 0.7250453 0.7245929 0.1297358 0.2754071 2.26196e-4 0.2754071 0.1297358 0.9997738 0.1297358 0.9997738 2.26196e-4 0.2754071 2.26196e-4 0.9997738 0.2596978 0.2754071 0.1301882 0.2754071 0.2596975 0.9997738 0.2596975 0.9997738 0.1301882 0.2754071 0.1301882 0.9997738 2.26196e-4 0.2100272 2.26196e-4 0.06515395 0.7245929 0.2100272 0.7245929 0.2100272 2.26196e-4 0.06515395 0.7245929 0.06515395 0.5950833 0.2754071 0.7245929 0.2754071 0.5950833 0.9997738 0.5950833 0.9997738 0.7245929 0.2754071 0.7245926 0.9997738 0.4651213 0.2754071 0.5946309 0.2754071 0.4651213 0.9997738 0.4651213 0.9997738 0.5946309 0.2754071 0.5946309 0.9997738 0.7250453 0.9348463 0.7250453 0.7899731 0.8545549 0.9997738 0.8545549 0.9997738 0.7250453 0.7899731 0.8545549 0.7250453 0.8545549 0.9997738 0.8545549 0.7250453 0.9840645 0.9348463 0.9840645 0.9348463 0.8545549 0.7250453 0.9840645 0.7899731 0.7245929 0.2100272 0.7245929 0.06515395 0.5950833 0.2749547 0.5950833 0.2749547 0.7245929 0.06515395 0.5950833 2.26196e-4 0.5950833 0.2749547 0.5950833 2.26196e-4 0.4655737 0.2100272 0.4655737 0.2100272 0.5950833 2.26196e-4 0.4655737 0.06515395</float_array>
+        <source id="he_prisms-mesh-map-0">
+          <float_array id="he_prisms-mesh-map-0-array" count="120">0.4917966 0.5210871 0.4015994 0.5210871 0.4917966 3.3272e-4 0.4924621 0.5210871 0.5826594 3.3272e-4 0.5826594 0.5210871 0.4009339 0.5210871 0.3107366 0.5210871 0.4009339 3.3272e-4 0.5833249 0.5210871 0.6735221 3.3272e-4 0.6735221 0.5210871 0.1031265 0.5109744 0.2052547 0.5314001 0.2052548 3.3272e-4 0.5210871 0.5320655 3.3272e-4 0.6362164 0.5210871 0.6362164 0.5210871 0.9996674 0.5210871 0.90947 3.3272e-4 0.9996674 0.5210871 0.6368818 3.3272e-4 0.727079 0.5210871 0.7270791 0.5210871 0.8179419 0.5210871 0.7277445 3.3272e-4 0.8179419 0.5210871 0.8186073 3.3272e-4 0.9088045 0.5210871 0.9088045 3.3272e-4 0.02075833 0.102461 3.3272e-4 0.102461 0.5314001 0.2059202 0.5210871 0.3100712 3.3272e-4 0.3100711 0.5210871 0.6881412 0.6119499 0.7402166 0.7021471 0.7402166 0.5217525 0.6874757 0.7021472 0.6874757 0.5217525 0.5833249 0.5217525 0.6874757 0.7021472 0.5833249 0.5217525 0.5833249 0.7021471 0.7262631 0.3617874 0.7262631 0.1813927 0.6741876 0.2715901 0.7269285 0.2715901 0.7790039 0.1813927 0.7790039 0.3617873 0.7783384 3.3273e-4 0.7783384 0.1807273 0.6741876 0.1807273 0.7783384 3.3273e-4 0.6741876 0.1807273 0.6741876 3.3272e-4 0.5826594 0.5217525 0.5826594 0.7021471 0.5305839 0.6119499</float_array>
           <technique_common>
-            <accessor source="#six_prism-mesh-map-0-array" count="60" stride="2">
+            <accessor source="#he_prisms-mesh-map-0-array" count="60" stride="2">
               <param name="S" type="float"/>
               <param name="T" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <vertices id="six_prism-mesh-vertices">
-          <input semantic="POSITION" source="#six_prism-mesh-positions"/>
+        <vertices id="he_prisms-mesh-vertices">
+          <input semantic="POSITION" source="#he_prisms-mesh-positions"/>
         </vertices>
-        <triangles count="20">
-          <input semantic="VERTEX" source="#six_prism-mesh-vertices" offset="0"/>
-          <input semantic="NORMAL" source="#six_prism-mesh-normals" offset="1"/>
-          <input semantic="TEXCOORD" source="#six_prism-mesh-map-0" offset="2" set="0"/>
-          <p>0 0 0 1 0 1 2 0 2 2 0 3 1 0 4 3 0 5 4 1 6 0 1 7 5 1 8 5 1 9 0 1 10 2 1 11 6 2 12 4 2 13 7 2 14 7 2 15 4 2 16 8 2 17 9 3 18 6 3 19 10 3 20 10 3 21 6 3 22 11 3 23 12 4 24 9 4 25 13 4 26 13 5 27 9 5 28 14 5 29 1 6 30 12 6 31 3 6 32 3 7 33 12 7 34 15 7 35 1 8 36 0 8 37 12 8 38 12 8 39 0 8 40 4 8 41 12 8 42 4 8 43 9 8 44 9 8 45 4 8 46 6 8 47 10 9 48 11 9 49 15 9 50 15 9 51 11 9 52 5 9 53 15 9 54 5 9 55 3 9 56 3 9 57 5 9 58 2 9 59</p>
+        <triangles material="材质_003-material" count="20">
+          <input semantic="VERTEX" source="#he_prisms-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#he_prisms-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#he_prisms-mesh-map-0" offset="2" set="0"/>
+          <p>0 0 0 1 0 1 2 0 2 2 1 3 1 1 4 3 1 5 4 2 6 0 2 7 5 2 8 5 2 9 0 2 10 6 2 11 7 3 12 4 3 13 8 3 14 8 3 15 4 3 16 9 3 17 10 4 18 7 4 19 11 4 20 11 4 21 7 4 22 12 4 23 13 5 24 10 5 25 14 5 26 14 6 27 10 6 28 15 6 29 1 7 30 13 7 31 3 7 32 3 7 33 13 7 34 14 7 35 4 8 36 7 8 37 0 8 38 0 8 39 7 8 40 10 8 41 0 8 42 10 8 43 1 8 44 1 8 45 10 8 46 13 8 47 15 9 48 8 9 49 14 9 50 14 9 51 8 9 52 9 9 53 14 9 54 9 9 55 3 9 56 3 9 57 9 9 58 2 9 59</p>
         </triangles>
       </mesh>
     </geometry>
@@ -157,9 +204,15 @@
         <matrix sid="transform">-0.2908646 -0.7711008 0.5663932 4.076245 0.9551712 -0.1998834 0.2183912 1.005454 -0.05518906 0.6045247 0.7946723 5.903862 0 0 0 1</matrix>
         <instance_light url="#Lamp-light"/>
       </node>
-      <node id="six_prism" name="six_prism" type="NODE">
-        <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#six_prism-mesh" name="six_prism"/>
+      <node id="he_prisms" name="he_prisms" type="NODE">
+        <matrix sid="transform">9.99987e-4 0 0 0 0 9.99987e-4 0 0 0 0 9.99987e-4 0 0 0 0 1</matrix>
+        <instance_geometry url="#he_prisms-mesh" name="he_prisms">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="材质_003-material" target="#材质_003-material"/>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
     </visual_scene>
   </library_visual_scenes>

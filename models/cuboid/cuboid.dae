@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.79.0 commit date:2018-03-22, commit time:14:10, hash:f4dc9f9d68b</authoring_tool>
     </contributor>
-    <created>2019-06-15T22:59:32</created>
-    <modified>2019-06-15T22:59:32</modified>
+    <created>2019-06-24T22:27:57</created>
+    <modified>2019-06-24T22:27:57</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -102,46 +102,58 @@
     </light>
   </library_lights>
   <library_images>
-    <image id="table_color_jpg" name="table_color_jpg">
-      <init_from>table_color.jpg</init_from>
+    <image id="__jpg" name="__jpg">
+      <init_from>3.jpg</init_from>
     </image>
   </library_images>
   <library_effects>
-    <effect id="table_color_jpg-effect">
+    <effect id="材质_002-effect">
       <profile_COMMON>
-        <newparam sid="table_color_jpg-surface">
+        <newparam sid="__jpg-surface">
           <surface type="2D">
-            <init_from>table_color_jpg</init_from>
+            <init_from>__jpg</init_from>
           </surface>
         </newparam>
-        <newparam sid="table_color_jpg-sampler">
+        <newparam sid="__jpg-sampler">
           <sampler2D>
-            <source>table_color_jpg-surface</source>
+            <source>__jpg-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
           <phong>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">1 1 1 1</color>
+            </ambient>
             <diffuse>
-              <texture texture="table_color_jpg-sampler" texcoord="table_color_jpg"/>
+              <texture texture="__jpg-sampler"/>
             </diffuse>
             <specular>
-              <color sid="specular">0 0 0 1</color>
+              <color sid="specular">0.5 0.5 0.5 1</color>
             </specular>
+            <shininess>
+              <float sid="shininess">50</float>
+            </shininess>
+            <index_of_refraction>
+              <float sid="index_of_refraction">1</float>
+            </index_of_refraction>
           </phong>
         </technique>
       </profile_COMMON>
     </effect>
   </library_effects>
   <library_materials>
-    <material id="table_color_jpg-material" name="table_color_jpg">
-      <instance_effect url="#table_color_jpg-effect"/>
+    <material id="材质_002-material" name="材质_002">
+      <instance_effect url="#材质_002-effect"/>
     </material>
   </library_materials>
   <library_geometries>
     <geometry id="cuboid-mesh" name="cuboid">
       <mesh>
         <source id="cuboid-mesh-positions">
-          <float_array id="cuboid-mesh-positions-array" count="24">0.04999995 0.04999995 0.15 0.04999995 0 0.15 0.04999995 0.04999995 0 0.04999995 0 0 0 0.04999995 0.15 0 0.04999995 0 0 0 0.15 0 0 0</float_array>
+          <float_array id="cuboid-mesh-positions-array" count="24">0 75 25 0 75 0 0 0 25 0 0 0 25 75 25 25 0 25 25 75 0 25 0 0</float_array>
           <technique_common>
             <accessor source="#cuboid-mesh-positions-array" count="8" stride="3">
               <param name="X" type="float"/>
@@ -151,7 +163,7 @@
           </technique_common>
         </source>
         <source id="cuboid-mesh-normals">
-          <float_array id="cuboid-mesh-normals-array" count="18">1 0 0 0 1 0 -1 0 0 0 -1 0 0 0 1 0 0 -1</float_array>
+          <float_array id="cuboid-mesh-normals-array" count="18">-1 0 0 0 0 1 1 0 0 0 0 -1 0 1 0 0 -1 0</float_array>
           <technique_common>
             <accessor source="#cuboid-mesh-normals-array" count="6" stride="3">
               <param name="X" type="float"/>
@@ -161,7 +173,7 @@
           </technique_common>
         </source>
         <source id="cuboid-mesh-map-0">
-          <float_array id="cuboid-mesh-map-0-array" count="72">0 0 0.2499998 0 2.98023e-7 0.7500001 2.98023e-7 0.7500001 0.2499998 0 0.2500001 0.75 0.7500001 0.75 0.5000002 0.75 0.75 0 0.75 0 0.5000002 0.75 0.5000001 0 0.2500001 0 0.5 0 0.2500002 0.75 0.2500002 0.75 0.5 0 0.5000001 0.75 0.7500001 0 1 0 0.7500002 0.75 0.7500002 0.75 1 0 1 0.75 0.5000001 1 0.5000002 0.75 0.75 1 0.75 1 0.5000002 0.75 0.75 0.75 0 0.7500001 0.2499998 0.7500001 0 1 0 1 0.2499998 0.7500001 0.2499998 1</float_array>
+          <float_array id="cuboid-mesh-map-0-array" count="72">0.4997194 0.833801 0.4997194 0.6673215 2.80625e-4 0.833801 0.9997195 0.5002806 0.5002806 0.6667602 0.9997195 0.6667602 0.6678828 0.4997194 0.5014032 0.4997194 0.6678828 2.80625e-4 2.80625e-4 0.4997194 0.1667602 2.80625e-4 0.1667602 0.4997194 0.333801 0.4997194 0.1673215 0.4997194 0.3338011 2.80625e-4 0.3343623 0.4997194 0.5008419 2.80625e-4 0.5008419 0.4997194 0.4997194 0.6667602 0.4997194 0.5002806 2.80625e-4 0.6667602 0.9997195 0.6673215 0.5002806 0.833801 0.9997195 0.833801 0.6678828 0.4997194 0.6678828 0.3332398 0.5014032 0.4997194 0.8349236 0.2362795 0.668444 0.4027591 0.8349236 0.4027591 0.9532036 0.1667602 0.7867241 0.1667602 0.9532036 2.80625e-4 0.7861629 2.80625e-4 0.7861629 0.2357183 0.668444 0.1179994</float_array>
           <technique_common>
             <accessor source="#cuboid-mesh-map-0-array" count="36" stride="2">
               <param name="S" type="float"/>
@@ -172,7 +184,7 @@
         <vertices id="cuboid-mesh-vertices">
           <input semantic="POSITION" source="#cuboid-mesh-positions"/>
         </vertices>
-        <triangles material="table_color_jpg-material" count="12">
+        <triangles material="材质_002-material" count="12">
           <input semantic="VERTEX" source="#cuboid-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#cuboid-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#cuboid-mesh-map-0" offset="2" set="0"/>
@@ -193,13 +205,11 @@
         <instance_light url="#Lamp-light"/>
       </node>
       <node id="cuboid" name="cuboid" type="NODE">
-        <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+        <matrix sid="transform">9.99987e-4 0 0 0 0 9.99987e-4 0 0 0 0 9.99987e-4 0 0 0 0 1</matrix>
         <instance_geometry url="#cuboid-mesh" name="cuboid">
           <bind_material>
             <technique_common>
-              <instance_material symbol="table_color_jpg-material" target="#table_color_jpg-material">
-                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
-              </instance_material>
+              <instance_material symbol="材质_002-material" target="#材质_002-material"/>
             </technique_common>
           </bind_material>
         </instance_geometry>
