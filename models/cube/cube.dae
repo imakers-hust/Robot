@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.79.0 commit date:2018-03-22, commit time:14:10, hash:f4dc9f9d68b</authoring_tool>
     </contributor>
-    <created>2019-06-03T12:13:45</created>
-    <modified>2019-06-03T12:13:45</modified>
+    <created>2019-06-24T22:26:24</created>
+    <modified>2019-06-24T22:26:24</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -102,21 +102,21 @@
     </light>
   </library_lights>
   <library_images>
-    <image id="table_color_jpg" name="table_color_jpg">
-      <init_from>table_color.jpg</init_from>
+    <image id="__jpg" name="__jpg">
+      <init_from>2.jpg</init_from>
     </image>
   </library_images>
   <library_effects>
-    <effect id="材质-effect">
+    <effect id="材质_001-effect">
       <profile_COMMON>
-        <newparam sid="table_color_jpg-surface">
+        <newparam sid="__jpg-surface">
           <surface type="2D">
-            <init_from>table_color_jpg</init_from>
+            <init_from>__jpg</init_from>
           </surface>
         </newparam>
-        <newparam sid="table_color_jpg-sampler">
+        <newparam sid="__jpg-sampler">
           <sampler2D>
-            <source>table_color_jpg-surface</source>
+            <source>__jpg-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
@@ -125,10 +125,10 @@
               <color sid="emission">0 0 0 1</color>
             </emission>
             <ambient>
-              <color sid="ambient">0 0 0 1</color>
+              <color sid="ambient">1 1 1 1</color>
             </ambient>
             <diffuse>
-              <texture texture="table_color_jpg-sampler"/>
+              <texture texture="__jpg-sampler"/>
             </diffuse>
             <specular>
               <color sid="specular">0.5 0.5 0.5 1</color>
@@ -145,8 +145,8 @@
     </effect>
   </library_effects>
   <library_materials>
-    <material id="材质-material" name="材质">
-      <instance_effect url="#材质-effect"/>
+    <material id="材质_001-material" name="材质_001">
+      <instance_effect url="#材质_001-effect"/>
     </material>
   </library_materials>
   <library_geometries>
@@ -173,7 +173,7 @@
           </technique_common>
         </source>
         <source id="cube-mesh-map-0">
-          <float_array id="cube-mesh-map-0-array" count="72">0.1851652 0.1846724 0.3695911 0.3690983 0.3695911 2.46459e-4 0.8158206 0.261557 0.5550029 0.5223746 0.8158206 0.5223746 0.5545101 0.9997535 0.2936924 0.9997535 0.5545101 0.7389359 2.46459e-4 0.8148347 0.2610641 0.5540171 0.2610641 0.8148347 0.8158206 0.2610641 0.5550029 0.2610641 0.8158206 2.46459e-4 2.46459e-4 0.3690983 2.46459e-4 2.46459e-4 0.1846724 0.1846724 0.8158206 0.7836852 0.8158205 0.5228675 0.5550029 0.7836852 0.55451 0.3690983 0.55451 2.46459e-4 0.3700841 0.1846724 0.5545101 0.9997535 0.5545101 0.7389359 0.2936924 0.9997535 0.1851652 0.1846724 0.1851652 0.5535241 0.3695911 0.3690983 2.46459e-4 0.3690983 0.1846724 0.1846724 0.1846724 0.5535241 0.55451 0.3695912 0.55451 0.738443 0.3700841 0.5540171</float_array>
+          <float_array id="cube-mesh-map-0-array" count="72">2.46467e-4 0.1846724 0.1846724 0.3690983 0.1846724 2.46459e-4 0.8158206 0.261557 0.5550029 0.5223746 0.8158206 0.5223746 0.5545101 0.9997535 0.2936924 0.9997535 0.5545101 0.7389359 0.5550029 0.2610641 0.8158206 2.46459e-4 0.8158206 0.2610641 0.2610641 0.8148347 2.46459e-4 0.8148347 0.2610641 0.5540171 0.1851652 0.3690983 0.1851652 2.46459e-4 0.3695911 0.1846724 0.8158206 0.7836852 0.8158205 0.5228675 0.5550029 0.7836852 0.55451 0.3690983 0.55451 2.46459e-4 0.3700841 0.1846724 0.5545101 0.9997535 0.5545101 0.7389359 0.2936924 0.9997535 2.46467e-4 0.1846724 2.46459e-4 0.5535241 0.1846724 0.3690983 0.1851652 0.3690983 0.3695911 0.1846724 0.3695911 0.5535241 0.55451 0.3695912 0.55451 0.738443 0.3700841 0.5540171</float_array>
           <technique_common>
             <accessor source="#cube-mesh-map-0-array" count="36" stride="2">
               <param name="S" type="float"/>
@@ -184,7 +184,7 @@
         <vertices id="cube-mesh-vertices">
           <input semantic="POSITION" source="#cube-mesh-positions"/>
         </vertices>
-        <triangles material="材质-material" count="12">
+        <triangles material="材质_001-material" count="12">
           <input semantic="VERTEX" source="#cube-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#cube-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#cube-mesh-map-0" offset="2" set="0"/>
@@ -209,7 +209,7 @@
         <instance_geometry url="#cube-mesh" name="cube">
           <bind_material>
             <technique_common>
-              <instance_material symbol="材质-material" target="#材质-material"/>
+              <instance_material symbol="材质_001-material" target="#材质_001-material"/>
             </technique_common>
           </bind_material>
         </instance_geometry>
