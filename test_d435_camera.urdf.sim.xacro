@@ -4,7 +4,7 @@
   <xacro:include filename="$(find realsense2_camera)/urdf/_d435.urdf.xacro"/>
   
   <sensor_d435 parent="tools2">
-    <origin xyz="-0.01 -0.435 0.015" rpy="1.5707963 0 3.1415926"/>
+    <origin xyz="-0.01 -0.405 0.015" rpy="1.5707963 0 3.1415926"/>
   </sensor_d435>
 
   <link
@@ -55,7 +55,7 @@
     name="joint_tools1"
     type="fixed">
     <origin
-      xyz="-0.0323 -0.040 -0.5"
+      xyz="-0.0323 -0.050 -0.5"
       rpy="-1.5707963 0 0" />
     <parent
       link="j2s7s300_link_7" />
@@ -117,7 +117,7 @@
     name="joint_tools2"
     type="fixed">
     <origin
-      xyz="0.016 -0.5 -0.48"
+      xyz="0.016 -0.5 -0.49"  
       rpy="-1.5707963 0 -1.5707963" />
     <parent
       link="tools1" />

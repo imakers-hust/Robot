@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.79.0 commit date:2018-03-22, commit time:14:10, hash:f4dc9f9d68b</authoring_tool>
     </contributor>
-    <created>2019-06-02T16:19:29</created>
-    <modified>2019-06-02T16:19:29</modified>
+    <created>2019-06-25T20:38:51</created>
+    <modified>2019-06-25T20:38:51</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -106,7 +106,7 @@
     <geometry id="second-mesh" name="second">
       <mesh>
         <source id="second-mesh-positions">
-          <float_array id="second-mesh-positions-array" count="54">0 70 20 0 70 30 0 75 30 0 75 0 0 70 0 0 70 10 0 0 10 0 0 20 5 70 20 5 0 20 5 70 10 5 70 0 5 75 0 5 75 30 5 70 30 5 0 10 0 70 30 0 75 30</float_array>
+          <float_array id="second-mesh-positions-array" count="54">0 110 20 0 110 30 0 115 30 0 115 0 0 110 0 0 110 10 0 0 10 0 0 20 5 110 20 5 0 20 5 110 10 5 110 0 5 115 0 5 115 30 5 110 30 5 0 10 0 110 30 0 115 30</float_array>
           <technique_common>
             <accessor source="#second-mesh-positions-array" count="18" stride="3">
               <param name="X" type="float"/>

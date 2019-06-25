@@ -17,17 +17,17 @@ j2s7s300:
         d: 0
         i: 0
         i_clamp: 1
-        p: 10
+        p: 1
       j2s7s300_joint_finger_2:
         d: 0
         i: 0
         i_clamp: 1
-        p: 10
+        p: 1
       j2s7s300_joint_finger_3:
-        d: 0
-        i: 0
+        d: 0.001
+        i: 0.01
         i_clamp: 1
-        p: 10
+        p: 2
     joints:
     - j2s7s300_joint_finger_1
     - j2s7s300_joint_finger_2
@@ -60,38 +60,38 @@ j2s7s300:
       stopped_velocity_tolerance: 0.02
     gains:
       j2s7s300_joint_1:
-        d: 0
-        i: 0
+        d: 1.2
+        i: 0.01
         i_clamp: 10
-        p: 2000
+        p: 100
       j2s7s300_joint_2:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
-        p: 3000
+        p: 200
       j2s7s300_joint_3:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
-        p: 1000
+        p: 200
       j2s7s300_joint_4:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
-        p: 2000
+        p: 200
       j2s7s300_joint_5:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
         p: 200
       j2s7s300_joint_6:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
-        p: 500
+        p: 200
       j2s7s300_joint_7:
-        d: 0
-        i: 0
+        d: 1
+        i: 0.01
         i_clamp: 10
         p: 200
     joints:
@@ -108,69 +108,69 @@ j2s7s300:
     pid:
       d: 0
       i: 0
-      p: 10
+      p: 1
     type: effort_controllers/JointPositionController
   finger_2_position_controller:
     joint: j2s7s300_joint_finger_2
     pid:
       d: 0
       i: 0
-      p: 10
+      p: 1
     type: effort_controllers/JointPositionController
   finger_3_position_controller:
     joint: j2s7s300_joint_finger_3
     pid:
-      d: 0
-      i: 0
-      p: 10
+      d: 0.001
+      i: 0.01
+      p: 2
     type: effort_controllers/JointPositionController
   joint_1_position_controller:
     joint: j2s7s300_joint_1
     pid:
-      d: 0
-      i: 0
-      p: 2000
+      d: 1.2
+      i: 0.01
+      p: 100
     type: effort_controllers/JointPositionController
   joint_2_position_controller:
     joint: j2s7s300_joint_2
     pid:
-      d: 0
-      i: 0
-      p: 3000
+      d: 1
+      i: 0.01
+      p: 200
     type: effort_controllers/JointPositionController
   joint_3_position_controller:
     joint: j2s7s300_joint_3
     pid:
-      d: 0
-      i: 0
-      p: 1000
+      d: 1
+      i: 0.01
+      p: 200
     type: effort_controllers/JointPositionController
   joint_4_position_controller:
     joint: j2s7s300_joint_4
     pid:
-      d: 0
-      i: 0
-      p: 2000
+      d: 1
+      i: 0.01
+      p: 200
     type: effort_controllers/JointPositionController
   joint_5_position_controller:
     joint: j2s7s300_joint_5
     pid:
-      d: 0
-      i: 0
+      d: 1
+      i: 0.01
       p: 200
     type: effort_controllers/JointPositionController
   joint_6_position_controller:
     joint: j2s7s300_joint_6
     pid:
-      d: 0
-      i: 0
-      p: 500
+      d: 1
+      i: 0.01
+      p: 200
     type: effort_controllers/JointPositionController
   joint_7_position_controller:
     joint: j2s7s300_joint_7
     pid:
-      d: 0
-      i: 0
+      d: 1
+      i: 0.01
       p: 200
     type: effort_controllers/JointPositionController
   joint_state_controller:
