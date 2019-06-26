@@ -116,61 +116,6 @@
     <axis
       xyz="0 0 0" />
 </joint>
-<!--
-<link
-    name="cone">
 
-    <inertial>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <mass
-        value="1.1E-5" />
-      <inertia
-        ixx="1.1E-5"
-        ixy="1.1E-5"
-        ixz="1.1E-5"
-        iyy="1.1E-5"
-        iyz="1.1E-5"
-        izz="1.1E-5" />
-    </inertial>
-
-    <visual>
-      <geometry>
-        <mesh
-          filename="$(find kinova_description)/objects/objects/cone.dae" />
-      </geometry>
-    </visual>
-
-    <material
-        name="">
-        <color
-          rgba="1 1 1 1" />
-        <texture
-          filename="$(find kinova_description)/objects/textures/green.jpg" />
-    </material>
-    
-    <collision>
-      <geometry>
-        <mesh
-          filename="$(find kinova_description)/objects/objects/cone.dae" />
-      </geometry>
-    </collision>
-</link>
-
-<joint
-    name="cone"
-    type="gearbox">
-    <origin
-      xyz="0 0 0"
-      rpy="0 0 0" />
-    <parent
-      link="right_board" />
-    <child
-      link="cone" />
-    <axis
-      xyz="0 0 0" />
-</joint>
- -->
 
 </robot>

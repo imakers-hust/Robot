@@ -1,40 +1,53 @@
-<?xml version="1.0" ?>
-<sdf version="1.6">
-  <model name="he_prisms">
-    <link name="link">
-    <pose>-0.015 0.015 -0.0375 1.5707963 0 0</pose>
-
-    <inertial>
-      <pose> 0 0 0 0 0 0 </pose>
-      <mass> 0.00001 </mass>
-      <inertia>
-        ixx="0.00001"
-        ixy="0.00001"
-        ixz="0.00001"
-        iyy="0.00001"
-        iyz="0.00001"
-        izz="0.00001" 
-      </inertia>
-    </inertial>
-
-      <collision name="collision">
-    	<pose>0 0 0 0 0 0</pose>
+<sdf version='1.6'>
+  <model name='he_prisms'>
+    <link name='object (8)'>
+      <pose frame=''>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose frame=''>-0 0 0.0375 0 -0 0</pose>
+        <mass>0.043843</mass>
+        <inertia>
+          <ixx>2.26063e-05</ixx>
+          <ixy>-2.58494e-23</ixy>
+          <ixz>-4.40679e-22</ixz>
+          <iyy>2.26063e-05</iyy>
+          <iyz>-9.81185e-22</iyz>
+          <izz>4.11024e-06</izz>
+        </inertia>
+      </inertial>
+      <collision name='object_collision'>
+        <pose frame=''>0 0 0 1.5708 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://he_prisms/he_prisms.dae</uri>
+            <scale>1 1 1</scale>
+            <uri>model://he_prisms/untitled.dae</uri>
           </mesh>
         </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1000.0</kp>
+              <kd>1.0</kd>
+              <min_depth>0.001</min_depth>
+              <max_vel>0.1</max_vel>
+            </ode>
+          </contact>
+        </surface>
       </collision>
-
-      <visual name="visual">
-    	<pose>0 0 0 0 0 0</pose>
+      <visual name='object_visual'>
+        <pose frame=''>0 0 0 1.5708 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://he_prisms/he_prisms.dae</uri>
+            <scale>1 1 1</scale>
+            <uri>model://he_prisms/untitled.dae</uri>
           </mesh>
         </geometry>
       </visual>
-
     </link>
   </model>
 </sdf>

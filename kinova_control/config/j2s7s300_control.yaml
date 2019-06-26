@@ -60,37 +60,37 @@ j2s7s300:
       stopped_velocity_tolerance: 0.02
     gains:
       j2s7s300_joint_1:
-        d: 1.2
-        i: 0.01
+        d: 0
+        i: 0
         i_clamp: 10
         p: 100
       j2s7s300_joint_2:
-        d: 1
+        d: 10
         i: 0.01
         i_clamp: 10
-        p: 200
+        p: 1000
       j2s7s300_joint_3:
         d: 1
         i: 0.01
         i_clamp: 10
-        p: 200
+        p: 3000
       j2s7s300_joint_4:
-        d: 1
-        i: 0.01
+        d: 0
+        i: 0
         i_clamp: 10
-        p: 200
+        p: 3000
       j2s7s300_joint_5:
         d: 1
-        i: 0.01
+        i: 0.1
         i_clamp: 10
-        p: 200
+        p: 3000
       j2s7s300_joint_6:
-        d: 1
-        i: 0.01
+        d: 0
+        i: 0
         i_clamp: 10
-        p: 200
+        p: 300
       j2s7s300_joint_7:
-        d: 1
+        d: 0.1
         i: 0.01
         i_clamp: 10
         p: 200
