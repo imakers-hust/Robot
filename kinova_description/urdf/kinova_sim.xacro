@@ -2,11 +2,14 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro"
        name="kinova_sim" >
 
-<property name="pi" value="3.14159265"/>
 
-  <!-- include urdf -->
   <xacro:include filename="$(find kinova_description)/urdf/j2s7s300_standalone.xacro" />
+
   <xacro:include filename="$(find kinova_description)/objects/objects.urdf.xacro" />
-  <xacro:include filename="$(find realsense2_camera)/urdf/test_d435_camera.urdf.sim.xacro"/>  
+
+  <xacro:include filename="$(find realsense2_camera)/urdf/_d435.urdf.xacro"/>
+
+  <xacro:include filename="$(find kinova_description)/objects/tools.urdf.xacro" />
+
 
 </robot>

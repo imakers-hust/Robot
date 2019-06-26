@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="kinova_sim" >
+
+<property name="pi" value="3.14159265"/>
+
+<link
+    name="left_basket">
+    
+    <inertial>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <mass
+        value="2.0243" />
+      <inertia
+        ixx="0.031947"
+        ixy="-6.6313E-18"
+        ixz="-2.4676E-18"
+        iyy="0.023762"
+        iyz="-7.8627E-18"
+        izz="0.052372" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="$(find kinova_description)/objects/meshes/left_basket.dae" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="$(find kinova_description)/objects//textures/blue.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="$(find kinova_description)/objects/meshes/left_basket.dae" />
+      </geometry>
+    </collision>
+</link>
+
+<link
+    name="right_board">
+    <inertial>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <mass
+        value="2.0243" />
+      <inertia
+        ixx="0.023049"
+        ixy="-7.5343E-18"
+        ixz="-5.8775E-36"
+        iyy="0.042"
+        iyz="0"
+        izz="0.06503" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="$(find kinova_description)/objects/meshes/right_board.dae" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="$(find kinova_description)/objects/textures/green.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0.5 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="$(find kinova_description)/objects/meshes/right_board.dae" />
+      </geometry>
+    </collision>
+</link>
+
+<joint
+    name="left_fixed"
+    type="fixed">
+    <origin
+      xyz="0.295 -0.12542 0.008"
+      rpy="0 0 0" />
+    <parent
+      link="world" />
+    <child
+      link="left_basket" />
+    <axis
+      xyz="0 0 0" />
+</joint>
+
+<joint
+    name="right_fixed"
+    type="fixed">
+    <origin
+      xyz="-0.17 -0.10042 0.008"
+      rpy="0 0 0" />
+    <parent
+      link="world" />
+    <child
+      link="right_board" />
+    <axis
+      xyz="0 0 0" />
+</joint>
+
+
+</robot>

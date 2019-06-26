@@ -27,11 +27,11 @@ using namespace Eigen;
 //-------------------------------------------------全局变量--------------------------------------------------
 const int N_MAX=70;                                 //循环抓取允许最大识别不到的次数，超出此次数识别结束
 vector<kinova_arm_moveit_demo::targetState> targets;//视觉定位结果
-std::vector< double > startPose;                    //机械臂初始识别位置
-std::vector< double > startPose1;                   //姿态备选
-std::vector< double > startPose2;
-std::vector< double > startPose3;
-std::vector< double > startPose4;
+geometry_msgs::Pose startPose;                    //机械臂初始识别位置
+geometry_msgs::Pose startPose1;                   //姿态备选
+geometry_msgs::Pose startPose2;
+geometry_msgs::Pose startPose3;
+geometry_msgs::Pose startPose4;
 geometry_msgs::Pose placePose;                      //机械臂抓取放置位置
 sensor_msgs::JointState kinovaState;                //机械臂当前状态
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
@@ -393,7 +393,7 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
   geometry_msgs::Pose targetPose;	//定义抓取位姿
   geometry_msgs::Point point;
   geometry_msgs::Quaternion orientation;
- 
+
   //抓取动作
 
   //finger_group->setNamedTarget("Open");   //仿真使用
@@ -412,7 +412,7 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
 
   moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
   moveit::planning_interface::MoveGroupInterface::Plan place_plan;
-	
+
   orientation.x = 1;//方向由视觉节点给定－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－Petori
   orientation.y = 0;
   orientation.z = 0;
@@ -543,57 +543,84 @@ void setPlacePose()
   placePose.orientation.w = 0;
 }
 
-//前往放置位置
+
 void goStartPose()
 {
+  //前往视觉识别位置
   moveit::planning_interface::MoveGroupInterface arm_group("arm");
-  arm_group.setJointValueTarget(startPose);
-  arm_group.move();
+  std::vector<geometry_msgs::Pose> targetWayPoints;
+  moveit_msgs::RobotTrajectory trajectory;
+  moveit::planning_interface::MoveGroupInterface::Plan move_plan;
+
+
+  targetWayPoints.push_back(startPose);
+  arm_group.computeCartesianPath(targetWayPoints,
+                                 0.02,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory);
+  move_plan.trajectory_ = trajectory;
+
+  arm_group.execute(move_plan);
+
+  // 闭合爪子
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  finger_group->setNamedTarget("Close");   //仿真使用
+  finger_group->move();
 }
+
+//void setStartPose1()
+//{
+//  startPose1.clear();
+//  startPose1.push_back(-2.33038);
+//  startPose1.push_back(2.42892);
+//  startPose1.push_back(3.49546);
+//  startPose1.push_back(1.81877);
+//  startPose1.push_back(2.89536);
+//  startPose1.push_back(1.97723);
+//  startPose1.push_back(-14.52231);
+//}
 
 void setStartPose1()
 {
-  startPose1.clear();
-  startPose1.push_back(-2.33038);
-  startPose1.push_back(2.42892);
-  startPose1.push_back(3.49546);
-  startPose1.push_back(1.81877);
-  startPose1.push_back(2.89536);
-  startPose1.push_back(1.97723);
-  startPose1.push_back(-14.52231);
+  startPose1.position.x = -0.3;
+  startPose1.position.y = 0.45;
+  startPose1.position.z = 0.2;
+  startPose1.orientation.x = 1;
+  startPose1.orientation.y = 0;
+  startPose1.orientation.z = 0;
+  startPose1.orientation.w = 0;
 }
+
 void setStartPose2()
 {
-  startPose2.clear();
-  startPose2.push_back(-2.33038);
-  startPose2.push_back(2.42892);
-  startPose2.push_back(3.49546);
-  startPose2.push_back(1.81877);
-  startPose2.push_back(2.89536);
-  startPose2.push_back(1.97723);
-  startPose2.push_back(-14.52231);
+  startPose2.position.x = -0.3;
+  startPose2.position.y = 0.45;
+  startPose2.position.z = 0.2;
+  startPose2.orientation.x = 1;
+  startPose2.orientation.y = 0;
+  startPose2.orientation.z = 0;
+  startPose2.orientation.w = 0;
 }
 void setStartPose3()
 {
-  startPose3.clear();
-  startPose3.push_back(-2.33038);
-  startPose3.push_back(2.42892);
-  startPose3.push_back(3.49546);
-  startPose3.push_back(1.81877);
-  startPose3.push_back(2.89536);
-  startPose3.push_back(1.97723);
-  startPose3.push_back(-14.52231);
+  startPose3.position.x = -0.3;
+  startPose3.position.y = 0.45;
+  startPose3.position.z = 0.2;
+  startPose3.orientation.x = 1;
+  startPose3.orientation.y = 0;
+  startPose3.orientation.z = 0;
+  startPose3.orientation.w = 0;
 }
 void setStartPose4()
 {
-  startPose4.clear();
-  startPose4.push_back(-2.33038);
-  startPose4.push_back(2.42892);
-  startPose4.push_back(3.49546);
-  startPose4.push_back(1.81877);
-  startPose4.push_back(2.89536);
-  startPose4.push_back(1.97723);
-  startPose4.push_back(-14.52231);
+  startPose4.position.x = -0.3;
+  startPose4.position.y = 0.45;
+  startPose4.position.z = 0.2;
+  startPose4.orientation.x = 1;
+  startPose4.orientation.y = 0;
+  startPose4.orientation.z = 0;
+  startPose4.orientation.w = 0;
 }
 
 void getRobotInfo(sensor_msgs::JointState curState)
@@ -698,14 +725,8 @@ void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow, const tf2_ro
   targetPose.orientation.z = targetReal.qz;
   targetPose.orientation.w = targetReal.qw;
 
-  // 转换startPose(vector(double))为poseStart(geometry_msgs::Pose)
-  poseStart.position.x = startPose[0];
-  poseStart.position.y = startPose[1];
-  poseStart.position.z = startPose[2];
-  poseStart.orientation.x = startPose[3];
-  poseStart.orientation.y = startPose[4];
-  poseStart.orientation.z = startPose[5];
-  poseStart.orientation.w = startPose[6];
+  // 转换startPose(vector(double))为poseStart(geometry_msgs::Pose) ---  改了数据类型,直接赋值
+  poseStart = startPose;
 
   // 抓取路径插值并执行抓取
   std::vector<geometry_msgs::Pose> pickWayPoints;
