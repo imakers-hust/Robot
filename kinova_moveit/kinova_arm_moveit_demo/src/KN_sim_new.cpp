@@ -534,8 +534,8 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
 
 void setPlacePose()
 {
-  placePose.position.x = -0.3;
-  placePose.position.y = 0.45;
+  placePose.position.x = -0.27;
+  placePose.position.y = 0.37;
   placePose.position.z = 0.2;
   placePose.orientation.x = 1;
   placePose.orientation.y = 0;
@@ -583,42 +583,42 @@ void goStartPose()
 
 void setStartPose1()
 {
-  startPose1.position.x = -0.3;
-  startPose1.position.y = 0.45;
-  startPose1.position.z = 0.2;
-  startPose1.orientation.x = 1;
-  startPose1.orientation.y = 0;
+  startPose1.position.x = -0.297;
+  startPose1.position.y = 0.43;
+  startPose1.position.z = 0.25;
+  startPose1.orientation.x = -0.988;
+  startPose1.orientation.y =  0.156;
   startPose1.orientation.z = 0;
   startPose1.orientation.w = 0;
 }
 
 void setStartPose2()
 {
-  startPose2.position.x = -0.3;
-  startPose2.position.y = 0.45;
-  startPose2.position.z = 0.2;
-  startPose2.orientation.x = 1;
-  startPose2.orientation.y = 0;
+  startPose2.position.x = -0.297;
+  startPose2.position.y = 0.43;
+  startPose2.position.z = 0.25;
+  startPose2.orientation.x = -0.988;
+  startPose2.orientation.y =  0.156;
   startPose2.orientation.z = 0;
   startPose2.orientation.w = 0;
 }
 void setStartPose3()
 {
-  startPose3.position.x = -0.3;
-  startPose3.position.y = 0.45;
-  startPose3.position.z = 0.2;
-  startPose3.orientation.x = 1;
-  startPose3.orientation.y = 0;
+  startPose3.position.x = -0.297;
+  startPose3.position.y = 0.43;
+  startPose3.position.z = 0.25;
+  startPose3.orientation.x = -0.988;
+  startPose3.orientation.y =  0.156;
   startPose3.orientation.z = 0;
   startPose3.orientation.w = 0;
 }
 void setStartPose4()
 {
-  startPose4.position.x = -0.3;
-  startPose4.position.y = 0.45;
-  startPose4.position.z = 0.2;
-  startPose4.orientation.x = 1;
-  startPose4.orientation.y = 0;
+  startPose4.position.x = -0.297;
+  startPose4.position.y = 0.43;
+  startPose4.position.z = 0.25;
+  startPose4.orientation.x = -0.988;
+  startPose4.orientation.y =  0.156;
   startPose4.orientation.z = 0;
   startPose4.orientation.w = 0;
 }

@@ -77,6 +77,6 @@ if __name__ == '__main__':
       moveJoint ([1.0,2.9,0.0,1.3,4.0,1.0,0.0],prefix,nbJoints)
      
 
-    #moveFingers ([1,1,1],prefix,nbfingers)
+    moveFingers ([1,1,1],prefix,nbfingers)
   except rospy.ROSInterruptException:
     print "program interrupted before completion"
