@@ -37,7 +37,7 @@ sensor_msgs::JointState kinovaState;                //机械臂当前状态
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
 bool getTargets=0;                                	//当接收到视觉定位结果时getTargets置1，执行完放置后置0
 bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1
-int poseChangeTimes=3;                              //当检测不到目标物体时,变换姿态重新检测的次数
+int poseChangeTimes=1;                              //当检测不到目标物体时,变换姿态重新检测的次数
 double minimumDistance = 0.3;                       //允许距离目标物的最小距离,单位米
 double servoCircle = 0.5;                           //伺服运动周期,单位秒
 
@@ -245,14 +245,14 @@ int main(int argc, char **argv)
             startPose = startPose1;
             goStartPose();
             nextTarget = true;
-            break;
           }
           ros::Duration(1.0).sleep();//这里延时一秒够吗
           isExist = judgeIsExist(curTag,targets);
           times++;
         }
 
-        isHinder = judgeIsHinder(curTag,targets);
+        // 人为将isHinder置为false,假定没有遮挡
+        isHinder = false; //judgeIsHinder(curTag,targets);
 
         while(isExist&&isHinder)//暂时不设置解决遮挡的次数
         {
@@ -300,8 +300,8 @@ int main(int argc, char **argv)
             targetFinish = true;
             ROS_INFO("Target [%d] succeeds.", curTag);
           }
-          if(nextTarget) break;
         }
+        if(nextTarget) break;
       }
     }
   }
