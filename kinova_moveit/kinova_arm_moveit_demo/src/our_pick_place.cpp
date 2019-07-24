@@ -525,7 +525,6 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint)
     }
     //抓取完毕
 #endif
-                
 
     point.x = curTargetPoint.x;//获取抓取位姿
     point.y = curTargetPoint.y;

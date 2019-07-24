@@ -83,10 +83,6 @@ add_executable(our_pick_place src/our_pick_place.cpp)
 target_link_libraries(our_pick_place ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
 install(TARGETS our_pick_place DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(KN_sim src/KN_sim.cpp)
-target_link_libraries(KN_sim ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
-install(TARGETS KN_sim DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
 add_executable(KN_real src/KN_real.cpp)
 target_link_libraries(KN_real ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
 install(TARGETS KN_real DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -102,6 +98,10 @@ install(TARGETS KN_sim_new DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 add_executable(forPID src/forPID.cpp)
 target_link_libraries(forPID ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
 install(TARGETS forPID DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(UR_real_new src/UR_real_new.cpp)
+target_link_libraries(UR_real_new ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
+install(TARGETS UR_real_new DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 ## end
 
 #get_cmake_property(_variableNames VARIABLES)

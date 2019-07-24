@@ -9,9 +9,6 @@
 #include <vector>
 #include <tf2_ros/transform_listener.h>
 //手指控制
-#include "kinova_driver/kinova_tool_pose_action.h"
-#include "kinova_driver/kinova_joint_angles_action.h"
-#include "kinova_driver/kinova_fingers_action.h"
 #include "robotiq_2f_gripper_control/gripperControl.h"  //robotiq二指手
 // 消息定义
 #include <std_msgs/Int8.h>
@@ -62,6 +59,8 @@ string tool_frame = "wrist_3_link";// tf中工具坐标系的名称
 typedef actionlib::SimpleActionClient<kinova_msgs::SetFingersPositionAction> Finger_actionlibClient;
 //定义手指控制client
 Finger_actionlibClient* client=NULL;
+
+// Robotiq手爪能自动调节闭合程度
 //爪子开闭程度
 float openVal=0.4;
 float closeVal=0.9;
