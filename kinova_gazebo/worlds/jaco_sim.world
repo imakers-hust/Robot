@@ -17,6 +17,36 @@
     </include>
 -->
 
+<include>
+  <uri>model://left_basket</uri>
+  <pose>-0.17 -0.4 0.01 0 0 0</pose>
+</include>
+
+<include>
+  <uri>model://right_board</uri>
+  <pose>0.3 -0.4 0.01 0 0 0</pose>
+</include>
+
+<joint name="left" type="revolute">
+      <parent>world</parent>
+      <child>left_basket</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+</joint>
+
+<joint name="right" type="revolute">
+      <parent>world</parent>
+      <child>right_board</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+</joint>
+
+
+
     <!-- Focus camera on tall pendulum -->
     <gui fullscreen='0'>
       <camera name='user_camera'>

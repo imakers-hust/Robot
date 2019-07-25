@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="table_kinova" >
+
+<property name="pi" value="3.14159265"/>
+
+  <!-- include urdf -->
+  <xacro:include filename="$(find kinova_description)/urdf/j2s7s300_standalone.xacro" />
+  <xacro:include filename="$(find table_basket_new)/urdf/kinect_box.urdf.xacro" />
+
+  <!-- define the table and baskets-->
+  <link name="table">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="81.416" />
+      <inertia
+        ixx="17.674"
+        ixy="-4.3368E-16"
+        ixz="4.9467E-16"
+        iyy="17.674"
+        iyz="1.3081E-17"
+        izz="19.456" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/table.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_basket_new/textures/table_color.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/table.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="left_basket">
+    <inertial>
+      <origin
+        xyz="-1.1102E-16 0 0.031586"
+        rpy="0 0 0" />
+      <mass
+        value="18.812" />
+      <inertia
+        ixx="0.029288"
+        ixy="-2.2695E-18"
+        ixz="-2.6278E-18"
+        iyy="0.01841"
+        iyz="2.5457E-20"
+        izz="0.04459" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/left_basket.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_basket_new/textures/blue.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/left_basket.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="left_fix"
+    type="fixed">
+    <origin
+      xyz="0.27 0.275 0"
+      rpy="0 0 0" />
+    <parent
+      link="table" />
+    <child
+      link="left_basket" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link name="right_basket">
+    <inertial>
+      <origin
+        xyz="0 -5.5511E-17 0.031586"
+        rpy="0 0 0" />
+      <mass
+        value="18.812" />
+      <inertia
+        ixx="0.029288"
+        ixy="1.3977E-18"
+        ixz="-3.7403E-18"
+        iyy="0.01841"
+        iyz="-5.7134E-19"
+        izz="0.04459" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/right_basket.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_basket_new/textures/green.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_basket_new/meshes/right_basket.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="right_fix"
+    type="fixed">
+    <origin
+      xyz="-0.27 0.275 0"
+      rpy="0 0 0" />
+    <parent
+      link="table" />
+    <child
+      link="right_basket" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link name="map" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="map" />
+    <child link = "table" />
+    <origin xyz="0.0 0.0 1.1" rpy="0.0 0.0 0.0" />
+  </joint>
+
+<!-- joint -->
+  <joint name="robot_fix" type="fixed">
+    <parent link="table" />
+    <child link = "root" />  
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.3 0.0"/>
+  </joint>
+
+  <joint name="camera_fix" type="fixed">
+    <parent link="root" />
+    <child link="camera_base_link" />
+    <origin rpy="0.0 1.57 -1.57" xyz="0.0 0.65 0.8"/>
+  </joint>
+
+<!-- gazebo -->
+  <gazebo reference="camera_rgb_frame">
+    <sensor type="depth" name="camera">
+      <always_on>true</always_on>
+      <update_rate>15.0</update_rate>
+      <camera>
+        <horizontal_fov>1.047197</horizontal_fov>
+        <image>  
+         <!-- openni_kinect plugin works only with BGR8 -->
+          <format>B8G8R8</format>
+          <width>800</width>
+          <height>800</height>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>50</far>
+        </clip>
+      </camera>
+    <plugin name="camera_link_controller" filename="libgazebo_ros_openni_kinect.so">
+      <baseline>0.1</baseline>
+      <alwaysOn>true</alwaysOn>
+      <updateRate>15.0</updateRate>
+      <cameraName>kinect</cameraName>
+      <imageTopicName>/kinect2/qhd/image_color_rect</imageTopicName>
+      <cameraInfoTopicName>/kinect2/qhd/camera_info</cameraInfoTopicName>			<!-- /kinect2/qhd/camera_info -->
+      <depthImageTopicName>/kinect2/qhd/image_depth_rect</depthImageTopicName>
+      <depthImageCameraInfoTopicName>/kinect/rgb/camera_info</depthImageCameraInfoTopicName>     <!-- /kinect2/qhd/camera_info -->
+      <pointCloudTopicName>/kinect/rgb/points</pointCloudTopicName>
+      <frameName>camera_rgb_optical_frame</frameName>
+      <pointCloudCutoff>0.35</pointCloudCutoff>
+      <pointCloudCutoffMax>4.5</pointCloudCutoffMax>
+      <CxPrime>0</CxPrime>
+      <Cx>0</Cx>
+      <Cy>0</Cy>
+      <focalLength>0</focalLength>
+      <hackBaseline>0</hackBaseline>
+    </plugin>
+   </sensor>
+  </gazebo> 
+
+<!-- color -->
+  <gazebo reference="table">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  
+  <gazebo reference="left_basket">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="right_basket">
+    <material>Gazebo/Green</material>
+  </gazebo>
+
+</robot>

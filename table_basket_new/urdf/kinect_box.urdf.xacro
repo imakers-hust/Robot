@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="kinect" >
+
+<property name="PI" value="3.14159265"/>
+
+  <!-- define the link -->
+  <link name="camera_base_link">
+    <visual>
+      <origin xyz="0 0.0 0.0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.072 0.085 0.021"/>
+        </geometry>
+          <material name="Black" />
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+          <geometry>
+            <box size="0.072 0.085 0.021"/>
+          </geometry>
+      </collision>
+  </link>
+
+  <link name="camera_base_post_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.005" length="0.016"/>
+      </geometry>
+      <material name="Black" />
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.005" length="0.016"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.07271 0.27794 0.033"/>
+      </geometry>
+        <material name="Black" />
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.07271 0.27794 0.033"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="camera_depth_frame">
+    <inertial>
+      <mass value="0.000001" />
+        <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+            iyy="0.0001" iyz="0.0"
+            izz="0.0001" />
+    </inertial>
+  </link>
+
+  <link name="camera_depth_optical_frame">
+    <inertial>
+      <mass value="0.000001" />
+        <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+            iyy="0.0001" iyz="0.0"
+            izz="0.0001" />
+    </inertial>
+  </link>
+
+  <link name="camera_rgb_frame">
+    <inertial>
+      <mass value="0.000001" />
+        <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+            iyy="0.0001" iyz="0.0"
+            izz="0.0001" />
+    </inertial>
+  </link>
+
+  <link name="camera_rgb_optical_frame">
+    <inertial>
+      <mass value="0.000001" />
+        <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+            iyy="0.0001" iyz="0.0"
+            izz="0.0001" />
+    </inertial>
+  </link>
+
+  <!--  
+  <joint name="root_camera_joint" type="fixed">
+    <parent link="root"/>
+    <child link="${name}_base_link"/>
+  </joint>   -->
+
+  <!-- define the joint -->
+  <joint name="camera_base_post_joint" type="fixed">
+    <origin xyz="0 0 0.0185" rpy="0 0 0" />
+    <parent link="camera_base_link" />
+    <child link="camera_base_post_link" />
+  </joint>
+
+  <joint name="camera_base_joint" type="fixed">
+    <origin xyz="0 0 0.0245" rpy="0 0 0" />
+    <parent link="camera_base_post_link" />
+    <child link="camera_link" />
+  </joint>
+
+  <joint name="camera_depth_joint" type="fixed">
+    <origin xyz="0 0.0125 0" rpy="0 0 0" />
+    <parent link="camera_link" />
+    <child link="camera_depth_frame" />
+  </joint>
+
+  <joint name="camera_depth_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}" />
+    <parent link="camera_depth_frame" />
+    <child link="camera_depth_optical_frame" />
+  </joint>
+
+  <joint name="camera_rgb_joint" type="fixed">
+    <origin xyz="0 -0.0125 0" rpy="0 0 0" />
+    <parent link="camera_link" />
+    <child link="camera_rgb_frame" />
+  </joint>
+
+  <joint name="camera_rgb_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}" />
+    <parent link="camera_rgb_frame" />
+    <child link="camera_rgb_optical_frame" />
+  </joint>
+
+</robot>

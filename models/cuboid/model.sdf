@@ -15,7 +15,7 @@
         </inertia>
       </inertial>
       <collision name='object_collision'>
-        <pose frame=''>0 0 0 1.5708 -0 0</pose>
+        <pose frame=''>0 0 0.01 1.5708 -0 0</pose>
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
@@ -31,16 +31,16 @@
           </friction>
           <contact>
             <ode>
-              <kp>1000.0</kp>
+              <kp>1000000.0</kp>
               <kd>1.0</kd>
-              <min_depth>0.001</min_depth>
+              <min_depth>0.0000001</min_depth>
               <max_vel>0.1</max_vel>
             </ode>
           </contact>
         </surface>
       </collision>
       <visual name='object_visual'>
-        <pose frame=''>0 0 0 1.5708 -0 0</pose>
+        <pose frame=''>0 0 0.01 1.5708 -0 0</pose>
         <geometry>
           <mesh>
             <scale>1 1 1</scale>

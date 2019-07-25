@@ -10,19 +10,20 @@
 
   <link
     name="tools1">
+     <static>true</static>
     <inertial>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
       <mass
-        value="2.0243E-6" />
+        value="2.0243E-24" />
       <inertia
-        ixx="0.031947E-6"
+        ixx="0.031947E-24"
         ixy="-6.6313E-24"
         ixz="-2.4676E-24"
-        iyy="0.023762E-6"
+        iyy="0.023762E-24"
         iyz="-7.8627E-24"
-        izz="0.052372E-6" />
+        izz="0.052372E-24" />
     </inertial>
     <visual>
       <origin
@@ -45,8 +46,7 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <mesh
-          filename="$(find kinova_description)/objects/tools/first.STL" />
+        <cylinder length="0.01" radius="0.01"/>
       </geometry>
     </collision>
   </link>
@@ -67,20 +67,20 @@
 
 <link
     name="tools2">
-    
+
     <inertial>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
       <mass
-        value="2.0243E-6" />
+        value="2.0243E-24" />
       <inertia
-        ixx="0.031947E-6"
+        ixx="0.031947E-24"
         ixy="-6.6313E-24"
         ixz="-2.4676E-24"
-        iyy="0.023762E-6"
+        iyy="0.023762E-24"
         iyz="-7.8627E-24"
-        izz="0.052372E-6" />
+        izz="0.052372E-24" />
     </inertial>
     <visual>
       <origin
@@ -109,7 +109,7 @@
     name="joint_tools2"
     type="fixed">
     <origin
-      xyz="0.05 -0.015 0.0025"  
+      xyz="0.05 -0.015 0.0025"
       rpy="0 -1.5707963 -1.5707963" />
     <parent
       link="tools1" />
