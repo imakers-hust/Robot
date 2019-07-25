@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<sdf version='1.6'>
+  <model name='right_board'>
+    
+    <link name='right_board'>
+      <pose frame=''>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose frame=''>0 0 0.01875 0 -0 0</pose>
+        <mass>6000</mass>
+        <inertia>
+          <ixx>6</ixx>
+          <ixy>6</ixy>
+          <ixz>6</ixz>
+          <iyy>6</iyy>
+          <iyz>6</iyz>
+          <izz>6</izz>
+        </inertia>
+      </inertial>
+      <collision name='object_collision'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://right_board/untitled.dae</uri>
+          </mesh>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>100.0</mu>
+              <mu2>50.0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>100000.0</kp>
+              <kd>1.0</kd>
+              <min_depth>0.0000001</min_depth>
+              <max_vel>0.1</max_vel>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name='object_visual'>
+        <pose frame=''>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model:///right_board/untitled.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+<joint name="right" type="fixed">
+  <parent>world</parent>
+  <child>right_board</child>
+  <pose>0 0 0 0 0 0</pose>
+</joint>
+
+
+  </model>
+</sdf>

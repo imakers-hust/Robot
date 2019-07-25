@@ -1,0 +1,155 @@
+<robot
+  name="table_fix">
+  <link
+    name="table">
+    <inertial>
+      <origin
+        xyz="3.296E-17 -0.0068419 -0.20655"
+        rpy="0 0 0" />
+      <mass
+        value="83.702" />
+      <inertia
+        ixx="19.272"
+        ixy="1.1981E-15"
+        ixz="-5.4509E-15"
+        iyy="19.55"
+        iyz="0.40239"
+        izz="19.98" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/table.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_fix/textures/table_color.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/table.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="left_basket">
+    <inertial>
+      <origin
+        xyz="2.2204E-16 1.1102E-16 0.021353"
+        rpy="0 0 0" />
+      <mass
+        value="2.5011" />
+      <inertia
+        ixx="0.040801"
+        ixy="1.106E-17"
+        ixz="-1.2189E-17"
+        iyy="0.048536"
+        iyz="-1.8029E-17"
+        izz="0.085254" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/left_basket.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_fix/textures/green.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/left_basket.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_fixed"
+    type="fixed">
+    <origin
+      xyz="0.245 -0.175 0"
+      rpy="0 0 0" />
+    <parent
+      link="table" />
+    <child
+      link="left_basket" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="right_basket">
+    <inertial>
+      <origin
+        xyz="2.2204E-16 -5.5511E-17 0.021353"
+        rpy="0 0 0" />
+      <mass
+        value="2.5011" />
+      <inertia
+        ixx="0.040801"
+        ixy="-1.9019E-19"
+        ixz="-1.0495E-17"
+        iyy="0.048536"
+        iyz="-1.4234E-17"
+        izz="0.085254" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/right_basket.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+        <texture
+          filename="package://table_fix/textures/blue.jpg" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://table_fix/meshes/right_basket.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_fixed"
+    type="fixed">
+    <origin
+      xyz="-0.245 -0.175 0"
+      rpy="0 0 0" />
+    <parent
+      link="table" />
+    <child
+      link="right_basket" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

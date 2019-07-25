@@ -5,8 +5,6 @@
 
   <xacro:include filename="$(find kinova_description)/urdf/j2s7s300_standalone.xacro" />
 
-  <xacro:include filename="$(find kinova_description)/objects/objects.urdf.xacro" />
-
   <xacro:include filename="$(find realsense2_camera)/urdf/_d435.urdf.xacro"/>
 
   <xacro:include filename="$(find kinova_description)/objects/tools.urdf.xacro" />

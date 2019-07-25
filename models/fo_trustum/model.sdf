@@ -1,10 +1,10 @@
 <sdf version='1.6'>
   <model name='fo_trustum'>
     <link name='object (6)'>
-      <pose frame=''>0 0 0 0 -0 0</pose>
+      <pose frame=''>0 0 0.01 0 -0 0</pose>
       <inertial>
         <pose frame=''>0.025 0.025 0.029464 0 -0 0</pose>
-        <mass>0.10938</mass>
+        <mass>0.010938</mass>
         <inertia>
           <ixx>6.08085e-05</ixx>
           <ixy>8.14663e-21</ixy>
@@ -31,9 +31,9 @@
           </friction>
           <contact>
             <ode>
-              <kp>1000.0</kp>
+              <kp>100000.0</kp>
               <kd>1.0</kd>
-              <min_depth>0.001</min_depth>
+              <min_depth>0.0000001</min_depth>
               <max_vel>0.1</max_vel>
             </ode>
           </contact>
