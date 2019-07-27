@@ -99,9 +99,6 @@ add_executable(forPID src/forPID.cpp)
 target_link_libraries(forPID ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
 install(TARGETS forPID DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(UR_real_new src/UR_real_new.cpp)
-target_link_libraries(UR_real_new ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinova_driver_LIBRARIES})
-install(TARGETS UR_real_new DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 ## end
 
 #get_cmake_property(_variableNames VARIABLES)
