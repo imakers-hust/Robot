@@ -70,21 +70,10 @@ float highVal=0.05;
 float openVal_real=0.4;
 float colseVal_real=0.9;
 const double FINGER_MAX = 6400;	//手指开合程度：0完全张开，6400完全闭合
-////2018
-////                        1      2      3       4     5       6     7       8      9     10
-////最合适的抓取参数          圆锥   立方体  四棱锥  长方体  三棱柱  六棱柱  四棱台  三棱锥  sphere  圆柱
-//float closeVals[10]=    {1.200, 0.900, 1.050, 1.150, 1.200, 1.050, 0.960, 1.300, 0.950, 1.200};// 爪子闭合程度 0.950
-//float highVals[10]=     {0.065, 0.065, 0.050, 0.025, 0.040, 0.030, 0.020, 0.065, 0.050, 0.030};// 抓取高度 0.05
-//float openVals[10]=     {0.900, 0.400, 1.000, 0.800, 1.000, 0.400, 0.400, 0.400, 0.800, 0.400};// 爪子张开程度  0.08
-
-//2019仿真训练
-//                        1      2      3       4     5       6     7       8      9     10
-//最合适的抓取参数         三棱锥   圆锥   正方体  四棱锥  球     三棱柱   四棱台  圆柱   六棱柱  长方体
-float closeVals[10]=    {1.200, 0.900, 1.050, 1.150, 1.200, 1.050, 0.960, 1.300, 4.000, 1.200};// 爪子闭合程度 0.950
-float highVals[10]=     {0.065, 0.065, 0.050, 0.025, 0.040, 0.030, 0.020, 0.065, 0.070, 0.030};// 抓取高度 0.05
-float openVals[10]=     {0.900, 0.400, 1.000, 0.800, 1.000, 0.400, 0.400, 0.400, 0.400, 0.400};// 爪子张开程度  0.08
-
-
+//最合适的抓取参数            1       2      3      4      5      6      7      8      9      10
+float closeVals[10]=    {1.200, 0.900, 1.050, 1.150, 1.200, 1.050, 0.960, 1.300, 1.300, 1.200};// 爪子闭合程度 0.950
+float highVals[10]=     {0.065, 0.065, 0.050, 0.025, 0.040, 0.030, 0.020, 0.065, 0.070, 0.030};// 抓取高度
+float openVals[10]=     {0.900, 0.400, 1, 0.800, 1, 0.400, 0.400, 0.400, 0.800, 0.400};// 爪子张开程度
 
 // -------------------------------------------------函数定义-------------------------------------------------
 //接收相机节点发过来的识别结果,更新全局变量targets
@@ -206,20 +195,20 @@ bool fingerControl(double finger_turn)
   }
 }
 
-void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::Buffer& tfBuffer_)
+void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint, const tf2_ros::Buffer& tfBuffer_)
 {
 //流程介绍
-//1--获得目标点并对路径进行插值                    moveit规划的笛卡尔空间轨迹有问题
-//2--执行插值后的路径                            ("/*************************************/");
-//3--到达目标点抓取物体                          ("/*************************************/");
-//4--从目标点到放置点进行插值                     ("/*************************************/");
+//1--获得目标点并对路径进行插值
+//2--执行插值后的路径
+//3--到达目标点抓取物体
+//4--从目标点到放置点进行插值
 //5--执行插值后的路径
 //6--放置物体
 //7--等待下一个目标点
   ROS_INFO("/*************************************/");
-  ROS_INFO("curPoint [%f],[%f], [%f]", curPoint.x,curPoint.y,curPoint.z);
-  ROS_INFO("curPoint [%f],[%f], [%f]", curPoint.x,curPoint.y,curPoint.z);
-  ROS_INFO("curPoint [%f],[%f], [%f]", curPoint.x,curPoint.y,curPoint.z);
+  ROS_INFO("curTargetPoint [%f],[%f], [%f]", curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
+  ROS_INFO("curTargetPoint [%f],[%f], [%f]", curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
+  ROS_INFO("curTargetPoint [%f],[%f], [%f]", curTargetPoint.x,curTargetPoint.y,curTargetPoint.z);
 
 
   ROS_INFO("tfBuffer_ [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
@@ -230,7 +219,6 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::B
   moveit::planning_interface::MoveGroupInterface arm_group("arm");	// replace the old version "moveit::planning_interface::MoveGroupInterface"
   moveit::planning_interface::MoveGroupInterface *finger_group;
   finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
-  geometry_msgs::Pose curPoint_mod;	//定义抓取位姿
   geometry_msgs::Pose targetPose;	//定义抓取位姿
   geometry_msgs::Point point;
   geometry_msgs::Quaternion orientation;
@@ -249,58 +237,55 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::B
   finger_group->setJointValueTarget(jointValues);
   finger_group->move();
 
-  ROS_INFO("transTarget       (tfBuffer_, curPoint)");
-  ROS_INFO("transTarget       (tfBuffer_, curPoint)");
-  ROS_INFO("transTarget       (tfBuffer_, curPoint)");
-  //<<<<<<<<<<<<<< 命名不合理,curTargetPoint表示当前所在位置,且接下来的命令使得当前位置丢失,修改curTargetPoint名称
-  kinova_arm_moveit_demo::targetState curTargetPoint = transTarget(tfBuffer_, curPoint);
+  ROS_INFO("transTarget(tfBuffer_, curTargetPoint)");
+  ROS_INFO("transTarget(tfBuffer_, curTargetPoint)");
+  ROS_INFO("transTarget(tfBuffer_, curTargetPoint)");
+  curTargetPoint = transTarget(tfBuffer_, curTargetPoint);
+
   point.x = curTargetPoint.x;//获取抓取位姿
   point.y = curTargetPoint.y;
   point.z = highVal;
+
+  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
+  moveit::planning_interface::MoveGroupInterface::Plan place_plan;
+
   orientation.x = 1; //curTargetPoint.qx;//方向由视觉节点给定－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－Petori
   orientation.y = 0; //curTargetPoint.qy;
   orientation.z = 0; //curTargetPoint.qz;
   orientation.w = 0; //curTargetPoint.qw;
+
+
+  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
+  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
+  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
+
+
   targetPose.position = point;// 设置好目标位姿为可用的格式
   targetPose.orientation = orientation;
-  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
-  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
-  cout<<"The target position is x:["<<point.x<<"], y:["<<point.y<<"], z:["<<point.z<<"].";
-
-  point.x = curPoint.x;//获取抓取位姿
-  point.y = curPoint.y;
-  point.z = highVal;
-  orientation.x = curPoint.qx; //curTargetPoint.qx;//方向由视觉节点给定－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－Petori
-  orientation.y = curPoint.qy; //curTargetPoint.qy;
-  orientation.z = curPoint.qz; //curTargetPoint.qz;
-  orientation.w = curPoint.qw; //curTargetPoint.qw;
-  curPoint_mod.position = point;// 设置好目标位姿为可用的格式
-  curPoint_mod.orientation = orientation;
 
   //抓取插值
-  ROS_INFO("pickInterpolate");
-  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
+  ROS_INFO("pickInterpolate)");
   std::vector<geometry_msgs::Pose> pickWayPoints;
   pickWayPoints = pickInterpolate(placePose, targetPose);
 
   //前往抓取点
+  ROS_INFO("Prepare for picking");
   moveit_msgs::RobotTrajectory trajectory1;
   arm_group.computeCartesianPath(pickWayPoints,
-                                 0.05,  // eef_step
+                                 0.02,  // eef_step
                                  0.0,   // jump_threshold
                                  trajectory1);
 
   pick_plan.trajectory_ = trajectory1;
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
   arm_group.execute(pick_plan);
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-
   ROS_INFO("          reaching");
   sleep(10);
   ROS_INFO("          reached");
@@ -317,41 +302,37 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::B
   //抓取完毕
   sleep(5);
   ROS_INFO("finger closing ...");
-  ros::Duration(5).sleep();
+
+  ros::Duration(10).sleep();
+
+
   ROS_INFO("got the object,got the object,got the object");
   ROS_INFO("/*************************************/");
-
-
-
   //放置插值
   ROS_INFO("placeInterpolate");
-  moveit::planning_interface::MoveGroupInterface::Plan place_plan;
   std::vector<geometry_msgs::Pose> placeWayPoints;
   placeWayPoints = placeInterpolate(targetPose, placePose);
-  ROS_INFO("placePose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("placePose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("placePose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
-  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
-  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
 
   //前往放置点
+  ROS_INFO("Prepare for placing");
   moveit_msgs::RobotTrajectory trajectory2;
   arm_group.computeCartesianPath(placeWayPoints,
-                                 0.03,  // eef_step
+                                 0.02,  // eef_step
                                  0.0,   // jump_threshold
                                  trajectory2);
   place_plan.trajectory_ = trajectory2;
   ROS_INFO("Prepare for placing. ");
-  ROS_INFO("Prepare for placing. ");
   ROS_INFO("Prepare for placing");
   ROS_INFO("Prepare for placing");
   ROS_INFO("Prepare for placing");
   ROS_INFO("Prepare for placing");
   ROS_INFO("Prepare for placing");
+  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
+  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
+  ROS_INFO("placePose [%f],[%f], [%f]", placePose.position.x,placePose.position.y,placePose.position.z);
   arm_group.execute(place_plan);
   ROS_INFO("          reaching");
-  sleep(15);
+  sleep(10);
   ROS_INFO("          reached");
 
   //松开爪子
@@ -366,7 +347,7 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::B
   ROS_INFO("/*************************************/");
 }
 
-//抓取插值函数 placePose, targetPose
+//抓取插值函数
 std::vector<geometry_msgs::Pose> pickInterpolate(geometry_msgs::Pose startPose,geometry_msgs::Pose targetPose)
 {
   //从放置位置前往抓取位置
@@ -390,22 +371,22 @@ std::vector<geometry_msgs::Pose> pickInterpolate(geometry_msgs::Pose startPose,g
   midPose4.position = midPoint;
   midPose4.orientation = targetPose.orientation;
 
-
-  ROS_INFO("midPose4 [%f],[%f], [%f]", midPose4.position.x,midPose4.position.y,midPose4.position.z);
   pickWayPoints.push_back(midPose4);
+
+  // Give targetPose
   pickWayPoints.push_back(targetPose);
 
   return pickWayPoints;
 }
 
-//放置插值函数 targetPose, placePose
+//放置插值函数
 std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,geometry_msgs::Pose targetPose)
 {
   //从放置位置前往抓取位置
   //插值后路径为＂|----＂形（先抬升，后平移）
   std::vector<geometry_msgs::Pose> placeWayPoints;
   geometry_msgs::Pose midPose1;
-  geometry_msgs::Pose midPose1_1;
+
   geometry_msgs::Point startPoint;
   geometry_msgs::Point targetPoint;
   geometry_msgs::Point midPoint;
@@ -421,33 +402,26 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
   midPose1.position = midPoint;
   midPose1.orientation = targetPose.orientation;
 
-  midPoint.x = startPoint.x;
-  midPoint.y = startPoint.y;
-  midPoint.z = targetPoint.z-0.01;
-
-  midPose1_1.position = midPoint;
-  midPose1_1.orientation = targetPose.orientation;
-  ROS_INFO("midPose1 [%f],[%f], [%f]", midPose1.position.x,midPose1.position.y,midPose1.position.z);
-  placeWayPoints.push_back(midPose1_1);
   placeWayPoints.push_back(midPose1);
+
+  // Give targetPose
   placeWayPoints.push_back(targetPose);
 
   return placeWayPoints;
 }
 
+void setPlacePose()
+{
+  placePose.position.x = -0.22;
+  placePose.position.y = -0.43;
+  placePose.position.z = 0.25;
+  placePose.orientation.x = 1;
+  placePose.orientation.y = 0;
+  placePose.orientation.z = 0;
+  placePose.orientation.w = 0;
+}
 
 
-//void setStartPose1()
-//{
-//  startPose1.clear();
-//  startPose1.push_back(-2.33038);
-//  startPose1.push_back(2.42892);
-//  startPose1.push_back(3.49546);
-//  startPose1.push_back(1.81877);
-//  startPose1.push_back(2.89536);
-//  startPose1.push_back(1.97723);
-//  startPose1.push_back(-14.52231);
-//}
 void goStartPose()
 {
   //前往视觉识别位置
@@ -472,31 +446,39 @@ void goStartPose()
   finger_group->setNamedTarget("Close");   //仿真使用
   finger_group->move();
 }
-void setPlacePose()
-{
-  placePose.position.x = -0.22;
-  placePose.position.y = 0.43;
-  placePose.position.z = 0.25;
-  placePose.orientation.x = 1;
-  placePose.orientation.y = 0;
-  placePose.orientation.z = 0;
-  placePose.orientation.w = 0;
-}
+
+//void setStartPose1()
+//{
+//  startPose1.clear();
+//  startPose1.push_back(-2.33038);
+//  startPose1.push_back(2.42892);
+//  startPose1.push_back(3.49546);
+//  startPose1.push_back(1.81877);
+//  startPose1.push_back(2.89536);
+//  startPose1.push_back(1.97723);
+//  startPose1.push_back(-14.52231);
+//}
+
 void setStartPose1()
 {
   startPose1.position.x = 0.25;
-  startPose1.position.y = 0.4;
+  startPose1.position.y = -0.43;
   startPose1.position.z = 0.3;
   startPose1.orientation.x = 1;
   startPose1.orientation.y = 0;
   startPose1.orientation.z = 0;
   startPose1.orientation.w = 0;
 }
+
+//default initial pose
+//Translation: [0.073, 0.164, 0.487]
+//Rotation: in Quaternion [0.620, 0.209, -0.169, 0.737]
+
 void setStartPose2()
 {
   startPose2.position.x = 0.25;
-  startPose2.position.y = 0.4;
-  startPose2.position.z = 0.07;
+  startPose2.position.y = -0.43;
+  startPose2.position.z = 0.3;
   startPose2.orientation.x = 1;
   startPose2.orientation.y = 0;
   startPose2.orientation.z = 0;
@@ -505,8 +487,8 @@ void setStartPose2()
 void setStartPose3()
 {
   startPose3.position.x = 0.25;
-  startPose3.position.y = 0.4;
-  startPose3.position.z = 0.06;
+  startPose3.position.y = -0.43;
+  startPose3.position.z = 0.3;
   startPose3.orientation.x = 1;
   startPose3.orientation.y = 0;
   startPose3.orientation.z = 0;
@@ -574,6 +556,212 @@ bool judgeIsHinder(int tag, vector<kinova_arm_moveit_demo::targetState> targetAl
   return result;
 }
 
+//获取遮挡物体的位置
+kinova_arm_moveit_demo::targetState judgeTheObstacle(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
+{
+  // 从所有遮挡物中,先取出离相机最近的那个
+  int num = targetAll.size();
+  int obstacleTag;
+  double distance[num];
+  double targetDistance;
+
+  for(int i=0;i<num;i++)
+  {
+    distance[i] = targetAll[i].x*targetAll[i].x + targetAll[i].y*targetAll[i].y + targetAll[i].z*targetAll[i].z;
+    if(tag==targetAll[i].tag)
+    {
+      targetDistance = distance[i];
+    }
+  }
+
+  for(int i=0;i<num;i++)
+  {
+    if(distance[num]<targetDistance)
+    {
+      targetDistance = distance[num];
+      obstacleTag = i;
+    }
+  }
+
+  return targetAll[obstacleTag];
+}
+
+//拾取遮挡物体
+void pickTheObstacle(kinova_arm_moveit_demo::targetState targetNow, const tf2_ros::Buffer& tfBuffer_)
+{
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");	//kinova
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
+  kinova_arm_moveit_demo::targetState targetReal;
+  geometry_msgs::Pose poseStart;
+  geometry_msgs::Pose targetPose;	//定义抓取位姿
+
+  // 把目标物体坐标转换到机器人坐标系下
+  targetReal = transTarget(tfBuffer_, targetNow);
+  targetPose.position.x = targetReal.x;
+  targetPose.position.y = targetReal.y;
+  targetPose.position.z = targetReal.z;
+  targetPose.orientation.x = targetReal.qx;
+  targetPose.orientation.y = targetReal.qy;
+  targetPose.orientation.z = targetReal.qz;
+  targetPose.orientation.w = targetReal.qw;
+
+  // 转换startPose(vector(double))为poseStart(geometry_msgs::Pose) ---  改了数据类型,直接赋值
+  poseStart = startPose;
+
+  // 抓取路径插值并执行抓取
+  std::vector<geometry_msgs::Pose> pickWayPoints;
+  pickWayPoints = pickInterpolate(poseStart, targetPose);
+
+  //前往抓取障碍物体
+  moveit_msgs::RobotTrajectory trajectory1;
+  arm_group.computeCartesianPath(pickWayPoints,
+                                 0.02,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  pick_plan.trajectory_ = trajectory1;
+  arm_group.execute(pick_plan);
+
+  //松开爪子
+  finger_group->setNamedTarget("Close");   //仿真使用
+  finger_group->move();
+}
+
+//放置遮挡物体
+void placeTheObstacle(int tag, kinova_arm_moveit_demo::targetState targetNow, vector<kinova_arm_moveit_demo::targetState> targetAll, const tf2_ros::Buffer& tfBuffer_)
+{
+  // 判断将遮挡物体放在哪里比较合适
+  // 算法为,选中一个与其他所有物体的距离平方之和最大的物体A
+  // 判断距离A物体最近的物体B,若B不是我们本轮的抓取对象,则将障碍物置于AB的中点
+  // 若B是本轮的抓取对象,则选取距离A第二近的物体C,障碍物置于AC的中点
+  // 若场上仅有障碍物与目标物,则平移五公分
+  int num = targetAll.size();
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");	//kinova
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  moveit::planning_interface::MoveGroupInterface::Plan place_plan;
+  kinova_arm_moveit_demo::targetState targetReal;
+  kinova_arm_moveit_demo::targetState targetTemp;
+  geometry_msgs::Pose targetPose;	//定义抓取位姿
+  geometry_msgs::Pose nowPose;	//定义抓取位姿
+
+  nowPose.position.x = targetNow.x;
+  nowPose.position.y = targetNow.y;
+  nowPose.position.z = targetNow.z; // 抬升10cm再放下
+  nowPose.orientation.x = targetNow.qx;
+  nowPose.orientation.y = targetNow.qy;
+  nowPose.orientation.z = targetNow.qz;
+  nowPose.orientation.w = targetNow.qw;
+
+  double coordinates[num][2];
+
+  // 只有目标物和障碍物的情况
+  if(num == 2)
+  {
+    for(int i=0;i<2;i++)
+    {
+      if(targetAll[i].tag==tag)continue;
+      targetReal = transTarget(tfBuffer_, targetAll[i]);
+    }
+    targetPose.position.x = targetReal.x + 0.02;
+    targetPose.position.y = targetReal.y + 0.02;
+    targetPose.position.z = targetReal.z + 0.2; // 抬升10cm再放下
+    targetPose.orientation.x = targetReal.qx;
+    targetPose.orientation.y = targetReal.qy;
+    targetPose.orientation.z = targetReal.qz;
+    targetPose.orientation.w = targetReal.qw;
+  }
+
+  // 场上存在三个以上物体的情况
+  else
+  {
+    // 选出物体A
+    double maxSum = 0;
+    double nowSum;
+    double fastTag;
+    for(int i=0;i<num;i++)
+    {
+      targetReal = transTarget(tfBuffer_, targetAll[i]);
+      coordinates[i][0] = targetReal.x;
+      coordinates[i][1] = targetReal.y;
+      nowSum = 0;
+      for(int j=0;j<(num);j++)
+      {
+        if(j!=i)
+        {
+          targetTemp = transTarget(tfBuffer_, targetAll[j]);
+          nowSum = (targetTemp.x-coordinates[i][0])*(targetTemp.x-coordinates[i][0]);
+          nowSum = nowSum + (targetTemp.y-coordinates[i][1])*(targetTemp.y-coordinates[i][1]);
+        }
+      }
+      if(nowSum>maxSum)
+      {
+        maxSum = nowSum;
+        fastTag = i;
+      }
+    }
+
+    // 选出物体B/C
+    double miniSum = 1000000;
+    double nearTag;
+    targetReal = transTarget(tfBuffer_, targetAll[fastTag]);
+    for(int i=0;i<num;i++)
+    {
+      if(i==tag) continue;
+
+      nowSum = 0;
+      targetTemp = transTarget(tfBuffer_, targetAll[i]);
+      nowSum = (targetTemp.x-coordinates[i][0])*(targetTemp.x-coordinates[i][0]);
+      nowSum = nowSum + (targetTemp.y-coordinates[i][1])*(targetTemp.y-coordinates[i][1]);
+      if(nowSum<miniSum)
+      {
+        miniSum = nowSum;
+        nearTag = i;
+      }
+    }
+
+    // 计算AB / AC 的中心位置
+    kinova_arm_moveit_demo::targetState targetA;
+    kinova_arm_moveit_demo::targetState targetB;
+
+    targetA = transTarget(tfBuffer_,targetAll[fastTag]);
+    targetB = transTarget(tfBuffer_,targetAll[nearTag]);
+
+    targetPose.position.x = (targetA.x + targetB.x)/2;
+    targetPose.position.y = (targetA.y + targetB.y)/2;
+    targetPose.position.z = (targetA.z + targetB.z)/2; + 0.2; // 抬升10cm再放下
+    targetPose.orientation.x = targetA.qx;
+    targetPose.orientation.y = targetA.qy;
+    targetPose.orientation.z = targetA.qz;
+    targetPose.orientation.w = targetA.qw;
+  }
+
+  //前往放置障碍物体--执行targetPose
+  std::vector<geometry_msgs::Pose> placeWayPoints;
+  placeWayPoints = placeInterpolate(nowPose, targetPose);
+  moveit_msgs::RobotTrajectory trajectory1;
+  arm_group.computeCartesianPath(placeWayPoints,
+                                 0.02,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  place_plan.trajectory_ = trajectory1;
+  arm_group.execute(place_plan);
+
+  //松开爪子
+  finger_group->setNamedTarget("Open");   //仿真使用
+  finger_group->move();
+}
+
+//计算与目标物体的绝对距离
+double calcDistance(kinova_arm_moveit_demo::targetState targetNow)
+{
+  double distance = 0;
+  distance = targetNow.x*targetNow.x + targetNow.y*targetNow.y + targetNow.z*targetNow.z;
+  return distance;
+}
 
 //获取当前目标对象的位置
 kinova_arm_moveit_demo::targetState getTargetPoint(int tag, vector<kinova_arm_moveit_demo::targetState> targetAll)
@@ -706,7 +894,7 @@ int main(int argc, char **argv)
   setStartPose2();
   setStartPose3();
   setStartPose4();
-  setPlacePose();
+
 
   ROS_INFO("begining");
   ROS_INFO("begining");
@@ -716,7 +904,7 @@ int main(int argc, char **argv)
 
   //ROS_INFO("设置起始位");
   startPose = startPose1;
-
+  setPlacePose();
   goStartPose();
   ROS_INFO("target [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
   ROS_INFO("target [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
@@ -856,6 +1044,8 @@ int main(int argc, char **argv)
           curTargetPoint = targets[i];
           ROS_INFO("/*************************************/");
           ROS_INFO("pickAndPlace");
+          ROS_INFO("pickAndPlace");
+          ROS_INFO("pickAndPlace");
           ROS_INFO("/*************************************/");
           pickAndPlace(curTargetPoint,tfBuffer);
 /**
@@ -888,11 +1078,7 @@ int main(int argc, char **argv)
             isExist = true;
           }
 **/
-          isExist = false;
-          ROS_INFO("/*************************************/");
           ROS_INFO("             Target [%d] succeeds.", curTag);
-          ROS_INFO("/*************************************/");
-
 
         }
         targetFinish = 1;
@@ -905,13 +1091,13 @@ int main(int argc, char **argv)
     targetFinish = true;
   }
 
-  startPose = startPose1;goStartPose();
+  startPose = startPose2;goStartPose();
   ROS_INFO("return [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
   ROS_INFO("return [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
   ROS_INFO("return [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
   //退出程序
-  //detectTarget.data=2;		//让visual_detect节点退出
-  //detectTarget_pub.publish(detectTarget);
+  detectTarget.data=2;		//让visual_detect节点退出
+  detectTarget_pub.publish(detectTarget);
   //发布抓取状态
   grabResultMsg.now_target=-1;
   grabResultMsg.grab_times=-1;

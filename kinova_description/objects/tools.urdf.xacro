@@ -13,7 +13,7 @@
      <static>true</static>
     <inertial>
       <origin
-        xyz="0 0 0"
+        xyz="0.1 0 0"
         rpy="0 0 0" />
       <mass
         value="2.0243E-24" />
@@ -46,7 +46,7 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <cylinder length="0.01" radius="0.01"/>
+        <cylinder length="0.001" radius="0.001"/>
       </geometry>
     </collision>
   </link>

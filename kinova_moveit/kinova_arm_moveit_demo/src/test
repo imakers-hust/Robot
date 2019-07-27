@@ -1,0 +1,54 @@
+
+  moveit::planning_interface::MoveGroupInterface arm_group("arm");	// replace the old version "moveit::planning_interface::MoveGroupInterface"
+  moveit::planning_interface::MoveGroupInterface *finger_group;
+  finger_group = new moveit::planning_interface::MoveGroupInterface("gripper");
+  geometry_msgs::Pose curPoint_mod;	//定义抓取位姿
+  geometry_msgs::Pose targetPose;	//定义抓取位姿
+  geometry_msgs::Point point;
+  geometry_msgs::Quaternion orientation;
+  ROS_INFO("pickInterpolate");
+  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
+  std::vector<geometry_msgs::Pose> pickWayPoints;
+
+  startPose = startPose1;
+  goStartPose();
+
+  pickWayPoints.push_back(placePose);
+  pickWayPoints.push_back(startPose1);
+
+  //前往抓取点
+  moveit_msgs::RobotTrajectory trajectory1;
+  arm_group.computeCartesianPath(pickWayPoints,
+                                 0.05,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  pick_plan.trajectory_ = trajectory1;
+  arm_group.execute(pick_plan);
+  sleep(5);
+
+  std::vector< double > jointValues;
+  jointValues.push_back(0);
+  jointValues.push_back(0);
+  jointValues.push_back(0);
+  finger_group->setJointValueTarget(jointValues);
+  finger_group->move();
+  sleep(5);
+  jointValues.push_back(2);
+  jointValues.push_back(2);
+  jointValues.push_back(2);
+  finger_group->setJointValueTarget(jointValues);
+  finger_group->move();
+  sleep(15);
+
+  pickWayPoints.push_back(placePose);
+  pickWayPoints.push_back(startPose1);
+  //前往抓取点
+  arm_group.computeCartesianPath(pickWayPoints,
+                                 0.05,  // eef_step
+                                 0.0,   // jump_threshold
+                                 trajectory1);
+
+  pick_plan.trajectory_ = trajectory1;
+  arm_group.execute(pick_plan);
+
