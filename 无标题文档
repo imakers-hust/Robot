@@ -1,0 +1,44 @@
+void setStartPose1()
+{
+  startPose1.position.x = 0.3;
+  startPose1.position.y = 0.43;
+  startPose1.position.z = 0.25;
+  startPose1.orientation.x = 1;
+  startPose1.orientation.y = 0;
+  startPose1.orientation.z = 0;
+  startPose1.orientation.w = 0;
+}
+
+//default initial pose
+//Translation: [0.073, 0.164, 0.487]
+//Rotation: in Quaternion [0.620, 0.209, -0.169, 0.737]
+
+void setStartPose2()
+{
+  startPose2.position.x = 0.073;
+  startPose2.position.y = 0.164;
+  startPose2.position.z = 0.487;
+  startPose2.orientation.x = 0.620;
+  startPose2.orientation.y =  0.209;
+  startPose2.orientation.z = -0.169;
+  startPose2.orientation.w =  0.737;
+}
+void setStartPose3()
+{
+  startPose3.position.x = 0.3;
+  startPose3.position.y = -0.3;
+  startPose3.position.z = 0.4;
+  startPose3.orientation.x = -0.988;
+  startPose3.orientation.y =  0.156;
+  startPose3.orientation.z = 0;
+  startPose3.orientation.w = 0;
+}
+
+
+  placePose.position.x = 0.27;
+  placePose.position.y = 0.43;
+  placePose.position.z = 0.25;
+  placePose.orientation.x = 1;
+  placePose.orientation.y = 0;
+  placePose.orientation.z = 0;
+  placePose.orientation.w = 0;

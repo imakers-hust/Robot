@@ -291,24 +291,23 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curPoint, const tf2_ros::B
                                  trajectory1);
 
   pick_plan.trajectory_ = trajectory1;
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("Prepare for picking ...");
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
+  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
   arm_group.execute(pick_plan);
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("Prepare for picking ...");
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-  ROS_INFO("targetPose [%f],[%f], [%f]", targetPose.position.x,targetPose.position.y,targetPose.position.z);
-
   ROS_INFO("          reaching");
   sleep(10);
   ROS_INFO("          reached");
 
   //抓取动作
-  jointValues.push_back(closeVal);
-  jointValues.push_back(closeVal);
-  jointValues.push_back(closeVal);
+  jointValues.push_back(2);
+  jointValues.push_back(2);
+  jointValues.push_back(2);
   finger_group->setJointValueTarget(jointValues);
   finger_group->move();
   ROS_INFO("finger closing [%f]",closeVal);
@@ -374,7 +373,6 @@ std::vector<geometry_msgs::Pose> pickInterpolate(geometry_msgs::Pose startPose,g
   std::vector<geometry_msgs::Pose> pickWayPoints;
 
   geometry_msgs::Pose midPose4;
-
   geometry_msgs::Point startPoint;
   geometry_msgs::Point targetPoint;
   geometry_msgs::Point midPoint;
@@ -389,8 +387,6 @@ std::vector<geometry_msgs::Pose> pickInterpolate(geometry_msgs::Pose startPose,g
 
   midPose4.position = midPoint;
   midPose4.orientation = targetPose.orientation;
-
-
   ROS_INFO("midPose4 [%f],[%f], [%f]", midPose4.position.x,midPose4.position.y,midPose4.position.z);
   pickWayPoints.push_back(midPose4);
   pickWayPoints.push_back(targetPose);
@@ -405,7 +401,7 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
   //插值后路径为＂|----＂形（先抬升，后平移）
   std::vector<geometry_msgs::Pose> placeWayPoints;
   geometry_msgs::Pose midPose1;
-  geometry_msgs::Pose midPose1_1;
+
   geometry_msgs::Point startPoint;
   geometry_msgs::Point targetPoint;
   geometry_msgs::Point midPoint;
@@ -420,15 +416,7 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
 
   midPose1.position = midPoint;
   midPose1.orientation = targetPose.orientation;
-
-  midPoint.x = startPoint.x;
-  midPoint.y = startPoint.y;
-  midPoint.z = targetPoint.z-0.01;
-
-  midPose1_1.position = midPoint;
-  midPose1_1.orientation = targetPose.orientation;
   ROS_INFO("midPose1 [%f],[%f], [%f]", midPose1.position.x,midPose1.position.y,midPose1.position.z);
-  placeWayPoints.push_back(midPose1_1);
   placeWayPoints.push_back(midPose1);
   placeWayPoints.push_back(targetPose);
 
@@ -495,8 +483,8 @@ void setStartPose1()
 void setStartPose2()
 {
   startPose2.position.x = 0.25;
-  startPose2.position.y = 0.4;
-  startPose2.position.z = 0.07;
+  startPose2.position.y = -0.43;
+  startPose2.position.z = 0.3;
   startPose2.orientation.x = 1;
   startPose2.orientation.y = 0;
   startPose2.orientation.z = 0;
@@ -505,8 +493,8 @@ void setStartPose2()
 void setStartPose3()
 {
   startPose3.position.x = 0.25;
-  startPose3.position.y = 0.4;
-  startPose3.position.z = 0.06;
+  startPose3.position.y = -0.43;
+  startPose3.position.z = 0.3;
   startPose3.orientation.x = 1;
   startPose3.orientation.y = 0;
   startPose3.orientation.z = 0;
@@ -706,7 +694,7 @@ int main(int argc, char **argv)
   setStartPose2();
   setStartPose3();
   setStartPose4();
-  setPlacePose();
+
 
   ROS_INFO("begining");
   ROS_INFO("begining");
@@ -716,7 +704,7 @@ int main(int argc, char **argv)
 
   //ROS_INFO("设置起始位");
   startPose = startPose1;
-
+  setPlacePose();
   goStartPose();
   ROS_INFO("target [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
   ROS_INFO("target [%f],[%f], [%f]", startPose.position.x,startPose.position.y,startPose.position.z);
@@ -726,6 +714,11 @@ int main(int argc, char **argv)
   /*************************************/
   /************输入目标标签***************/
   /*************************************/
+
+
+
+
+
 
 
   ROS_INFO("waiting for tags of targets input in GUI");

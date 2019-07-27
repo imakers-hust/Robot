@@ -4,37 +4,37 @@
 joint_limits:
   j2s7s300_joint_1:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.6
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_2:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.6
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_3:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.6
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_4:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.8
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_5:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.8
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_6:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.8
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_7:
     has_velocity_limits: true
-    max_velocity: 0.35
+    max_velocity: 0.8
     has_acceleration_limits: false
     max_acceleration: 0
   j2s7s300_joint_finger_1:
