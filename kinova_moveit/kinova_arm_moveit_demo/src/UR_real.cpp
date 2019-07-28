@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <tf2_ros/transform_listener.h>
+#include <unistd.h>
 //手指控制
 #include "robotiq_2f_gripper_control/gripperControl.h"  //robotiq二指手
 // 消息定义
@@ -25,13 +26,13 @@ using namespace Eigen;
 //-------------------------------------------------全局变量--------------------------------------------------
 const int N_MAX=70;                                 //循环抓取允许最大识别不到的次数，超出此次数识别结束
 vector<kinova_arm_moveit_demo::targetState> targets;//视觉定位结果
-geometry_msgs::Pose startPose;                    //机械臂初始识别位置
-geometry_msgs::Pose startPose1;                   //姿态备选
+geometry_msgs::Pose startPose;                      //机械臂初始识别位置
+geometry_msgs::Pose startPose1;                     //姿态备选
 geometry_msgs::Pose startPose2;
 geometry_msgs::Pose startPose3;
 geometry_msgs::Pose startPose4;
 geometry_msgs::Pose placePose;                      //机械臂抓取放置位置
-sensor_msgs::JointState urState;                //机械臂当前状态
+sensor_msgs::JointState urState;                    //机械臂当前状态
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
 bool getTargets=0;                                	//当接收到视觉定位结果时getTargets置1，执行完放置后置0
 bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1
@@ -39,6 +40,7 @@ int poseChangeTimes=0;                              //当检测不到目标物�
 double minimumDistance = 0.3;                       //允许距离目标物的最小距离,单位米
 double servoCircle = 0.5;                           //伺服运动周期,单位秒
 std_msgs::Int8 detectMsg;
+double destHeight = 0.15;
 
 //-------------------------------------------------相机相关--------------------------------------------------
 //相机参数和深度信息用于计算
@@ -46,9 +48,9 @@ std_msgs::Int8 detectMsg;
 #define UV0 400.5
 #define Zw 0.77
 //手眼关系定义--赋值在main函数中
-Eigen::Matrix3d hand2eye_r;
-Eigen::Vector3d hand2eye_t;
-Eigen::Quaterniond hand2eye_q;
+Eigen::Matrix3f hand2eye_r;
+Eigen::Vector3f hand2eye_t;
+Eigen::Quaternionf hand2eye_q;
 
 //-------------------------------------------------机器人相关------------------------------------------------
 //定义机器人类型
@@ -61,9 +63,9 @@ Finger_actionlibClient* client=NULL;
 // Robotiq手爪能自动调节闭合程度
 float highVal=0.05;
 float closeVal=50;
-//                   香蕉， 芒果，  柠檬， 草莓，  橙子，青苹果，  山竹， 蛇果，  杨桃，  葡萄
-float highVals[10]= {0.1, 0.05, 0.050, 0.05, 0.050, 0.050, 0.050, 0.05, 0.050, 0.050};// 抓取高度
-float closeVals[10] = {50,  65,    75,   50,    50,   50,     60,   50,    50,    60};//爪子闭合
+//                   芒果， 蛇果，青苹果， 香蕉,  山竹，  橙子，  柠檬， 草莓，  葡萄，  杨桃
+float highVals[10]= {0.05, 0.07, 0.07,  0.1, 0.040,  0.07,  0.05, 0.045, 0.045, 0.050};// 抓取高度
+float closeVals[10] = {65,  45,    45,   40,    60,   45,    100,  150,    140,    50};//爪子闭合
 
 // -------------------------------------------------函数定义-------------------------------------------------
 //接收相机节点发过来的识别结果,更新全局变量targets
@@ -170,6 +172,8 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint, const tf2_
   geometry_msgs::Pose targetPose;	//定义抓取位姿
   geometry_msgs::Point point;
   geometry_msgs::Quaternion orientation;
+  Eigen::Quaternionf cameraQuater;
+  Eigen::Matrix3f cameraRot;
 
   //ur5张开手爪
   sendGripperMsg(0);//open
@@ -180,38 +184,46 @@ void pickAndPlace(kinova_arm_moveit_demo::targetState curTargetPoint, const tf2_
 
   point.x = curTargetPoint.x;//获取抓取位姿
   point.y = curTargetPoint.y;
-  point.z = highVal;
+  point.z = curTargetPoint.z + highVal + destHeight;
 
   moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
   moveit::planning_interface::MoveGroupInterface::Plan place_plan;
 
-//  orientation.x = curTargetPoint.qx;//方向由视觉节点给定－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－Petori
-//  orientation.y = curTargetPoint.qy;
-//  orientation.z = curTargetPoint.qz;
-//  orientation.w = curTargetPoint.qw;
-  orientation.w = 0.707108;
+  orientation.x = curTargetPoint.qx;//方向由视觉节点给定－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－Petori
+  orientation.y = curTargetPoint.qy;
+  orientation.z = curTargetPoint.qz;
+  orientation.w = curTargetPoint.qw;
+
+  orientation.w = 0;
   orientation.x = 0;//方向先固定（调试
-  orientation.y = 0.707108;
+  orientation.y = 1;
   orientation.z = 0;
-  //sleep(60);
 
+  cameraQuater.x() = orientation.x;
+  cameraQuater.y() = orientation.y;
+  cameraQuater.z() = orientation.z;
+  cameraQuater.w() = orientation.w;
 
+  cameraRot = cameraQuater.toRotationMatrix();
+  cout<<"Pose from camera -- initial: "<<endl;
+  cout<<cameraRot<<endl;
 
   targetPose.position = point;// 设置好目标位姿为可用的格式
   targetPose.orientation = orientation;
 
-  geometry_msgs::Pose pose;
-  pose = targetPose;
-
-//  cout<<"targetPose: "<<targetPose.position.x<<",";
+  cout<<"targetPose z: "<<endl;//targetPose.position.x<<",";
 //  cout<<targetPose.position.y<<",";
-//  cout<<targetPose.position.z<<",";
-//  cout<<targetPose.orientation.x<<",";
-//  cout<<targetPose.orientation.y<<",";
-//  cout<<targetPose.orientation.z<<",";
-//  cout<<targetPose.orientation.w<<endl;
+  cout<<targetPose.position.z<<endl;
 
-  targetPose = changePoseForUR(pose);
+  cout<<"cameraQuater: "<<cameraQuater.w()<<","<<cameraQuater.x();
+  cout<<cameraQuater.y()<<",";
+  cout<<cameraQuater.z()<<endl;
+
+  cout<<"targetPose: "<<targetPose.orientation.w<<","<<targetPose.orientation.x;
+  cout<<targetPose.orientation.y<<",";
+  cout<<targetPose.orientation.z<<endl;
+
+  targetPose = changePoseForUR(targetPose);
 
   //抓取插值
   std::vector<geometry_msgs::Pose> pickWayPoints;
@@ -326,18 +338,13 @@ std::vector<geometry_msgs::Pose> placeInterpolate(geometry_msgs::Pose startPose,
 
 void setPlacePose()
 {
-    Eigen::Vector3d ea(0, 1.5708, 0);
-    Eigen::Quaterniond quaternion3;
-    quaternion3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitX()) *
-                  Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) *
-                  Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitZ());
-    placePose.position.x = -0.34;
-    placePose.position.y = -0.542;
+    placePose.position.x = -0.3;
+    placePose.position.y = -0.5;
     placePose.position.z = 0.26;
-    placePose.orientation.x = quaternion3.x();
-    placePose.orientation.y = quaternion3.y();
-    placePose.orientation.z = quaternion3.z();
-    placePose.orientation.w = quaternion3.w();
+    placePose.orientation.x = 0;
+    placePose.orientation.y = 1;
+    placePose.orientation.z = 0;
+    placePose.orientation.w = 0;
 }
 
 
@@ -375,72 +382,47 @@ void goStartPose()
 //  startPose1.push_back(-14.52231);
 //}
 
+//注意，UR是0 1 0 0，kinova是1 0 0 0，顺序都是xyzw，kinova这里指仿真中的姿态，实物要到现场才知道
 void setStartPose1()
 {
-    Eigen::Vector3d ea(0, 1.5708, 0);
-    Eigen::Quaterniond quaternion3;
-    quaternion3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitX()) *
-                  Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) *
-                  Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitZ());
-    cout << "Below is the trans result:" << endl;
-    cout << "quaternion3 x: " << quaternion3.x() << endl;
-    cout << "quaternion3 y: " << quaternion3.y() << endl;
-    cout << "quaternion3 z: " << quaternion3.z() << endl;
-    cout << "quaternion3 w: " << quaternion3.w() << endl;
-
     startPose1.position.x = 0.159;
     startPose1.position.y = -0.377;
     startPose1.position.z = 0.446;
-    startPose1.orientation.x = quaternion3.x();
-    startPose1.orientation.y = quaternion3.y();
-    startPose1.orientation.z = quaternion3.z();
-    startPose1.orientation.w = quaternion3.w();
+    startPose1.orientation.x = 0;
+    startPose1.orientation.y = 1;
+    startPose1.orientation.z = 0;
+    startPose1.orientation.w = 0;
 }
 
 void setStartPose2()
 {
-    Eigen::Vector3d ea(0, 1.5708, 0);
-    Eigen::Quaterniond quaternion3;
-    quaternion3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitX()) *
-                  Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) *
-                  Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitZ());
     startPose2.position.x = 0.159;
     startPose2.position.y = -0.377;
     startPose2.position.z = 0.446;
-    startPose2.orientation.x = quaternion3.x();
-    startPose2.orientation.y = quaternion3.y();
-    startPose2.orientation.z = quaternion3.z();
-    startPose2.orientation.w = quaternion3.w();
+    startPose2.orientation.x = 0;
+    startPose2.orientation.y = 1;
+    startPose2.orientation.z = 0;
+    startPose2.orientation.w = 0;
 }
 void setStartPose3()
 {
-    Eigen::Vector3d ea(0, 1.5708, 0);
-    Eigen::Quaterniond quaternion3;
-    quaternion3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitX()) *
-                  Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) *
-                  Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitZ());
     startPose3.position.x = 0.159;
     startPose3.position.y = -0.377;
     startPose3.position.z = 0.446;
-    startPose3.orientation.x = quaternion3.x();
-    startPose3.orientation.y = quaternion3.y();
-    startPose3.orientation.z = quaternion3.z();
-    startPose3.orientation.w = quaternion3.w();
+    startPose3.orientation.x = 0;
+    startPose3.orientation.y = 1;
+    startPose3.orientation.z = 0;
+    startPose3.orientation.w = 0;
 }
 void setStartPose4()
 {
-    Eigen::Vector3d ea(0, 1.5708, 0);
-    Eigen::Quaterniond quaternion3;
-    quaternion3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitX()) *
-                  Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) *
-                  Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitZ());
     startPose4.position.x = 0.159;
     startPose4.position.y = -0.377;
     startPose4.position.z = 0.446;
-    startPose4.orientation.x = quaternion3.x();
-    startPose4.orientation.y = quaternion3.y();
-    startPose4.orientation.z = quaternion3.z();
-    startPose4.orientation.w = quaternion3.w();
+    startPose4.orientation.x = 0;
+    startPose4.orientation.y = 1;
+    startPose4.orientation.z = 0;
+    startPose4.orientation.w = 0;
 }
 
 void getRobotInfo(sensor_msgs::JointState curState)
@@ -724,26 +706,27 @@ void approachTarget(int tag, kinova_arm_moveit_demo::targetState targetNow, sens
 kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_, kinova_arm_moveit_demo::targetState targetNow)
 {
   kinova_arm_moveit_demo::targetState transResult;
-  Eigen::Vector3d cam_center3d, base_center3d;
+  Eigen::Vector3f cam_center3f, base_center3f;
 
-  cam_center3d(0)=targetNow.x;
-  cam_center3d(1)=targetNow.y;
-  cam_center3d(2)=targetNow.z;
+  cam_center3f(0)=targetNow.x;
+  cam_center3f(1)=targetNow.y;
+  cam_center3f(2)=targetNow.z;
+  Eigen::Quaternionf camera_quater(targetNow.qw,targetNow.qx,targetNow.qy,targetNow.qz);
+  Eigen::Quaternionf object_quater;
+  Eigen::Matrix3f camera_rot;
+  Eigen::Matrix3f object_rot;
+  Eigen::Vector3f object_x_axis;
+  Eigen::Vector3f object_y_axis;
+  Eigen::Vector3f object_z_axis;
+  object_z_axis << 0,0,-1;
 
-  base_center3d=hand2eye_r*cam_center3d+hand2eye_t;
-  Eigen::Quaterniond quater(targetNow.qw,targetNow.qx,targetNow.qy,targetNow.qz);
-
-  //cout<<"targetNow's quater : "<<targetNow.qx<<","<<targetNow.qy<<","<<targetNow.qz<<","<<targetNow.qw<<endl;
-
-  //cout<<"quater1 : "<<quater.w()<<","<<quater.x()<<","<<quater.y()<<","<<quater.z()<<endl;
-  quater=hand2eye_r*quater;
-  //cout<<"quater2 : "<<quater.w()<<","<<quater.x()<<","<<quater.y()<<","<<quater.z()<<endl;
+  base_center3f=hand2eye_r*cam_center3f+hand2eye_t;
 
   //用tf来计算base2hand--------------------------------------
-  Eigen::Matrix3d base2hand_r;
-  Eigen::Vector3d base2hand_t;
-  Eigen::Quaterniond base2hand_q;
+  Eigen::Matrix3f base2hand_r;
+  Eigen::Vector3f base2hand_t;
   geometry_msgs::TransformStamped transformStamped;
+
   try
   {
     transformStamped = tfBuffer_.lookupTransform(base_frame, tool_frame, ros::Time(0),ros::Duration(0.5));
@@ -753,11 +736,12 @@ kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_
     ROS_WARN("%s",ex.what());
   }
 
-  // ur从tf订阅的位姿也得转换
+  // ur从tf订阅的位姿也得转换--------------------- ur only
   transformStamped.transform.translation.x = -transformStamped.transform.translation.x;
   transformStamped.transform.translation.y = -transformStamped.transform.translation.y;
 
   //base2hand_r=rotQ.matrix();
+
   //相对姿态不变，固定住
   base2hand_r<<-1,0,0,
                 0,1,0,
@@ -766,27 +750,31 @@ kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_
   base2hand_t<<transformStamped.transform.translation.x,
            transformStamped.transform.translation.y,
            transformStamped.transform.translation.z;
-  base2hand_q=base2hand_r;
 
-//  cout<<"base2hand_t: "<<base2hand_t.x()<<","<<base2hand_t.y()<<","<<base2hand_t.z()<<endl;
-//  cout<<"base2hand_q: "<<base2hand_q.w()<<","<<base2hand_q.x()<<","<<base2hand_q.y()<<","<<base2hand_q.z()<<endl;
+  //目标物从工具坐标系转到基坐标系下------位置结果
+  base_center3f=base2hand_r*base_center3f+base2hand_t;
+  //目标物从工具坐标系转到基坐标系下------姿态结果
+  camera_rot = camera_quater.toRotationMatrix();
+  object_x_axis = camera_rot.col(0);
+  object_x_axis(0) = -object_x_axis(0);//ur的法兰x向和基坐标系x向相反
+  object_x_axis(2) = -object_x_axis(2);
+  object_y_axis = object_z_axis.cross(object_x_axis);
+  object_x_axis = object_y_axis.cross(object_z_axis);
+  object_rot << object_x_axis(0),object_y_axis(0),object_z_axis(0),
+                object_x_axis(1),object_y_axis(1),object_z_axis(1),
+                object_x_axis(2),object_y_axis(2),object_z_axis(2);
+  object_quater = object_rot;
+  cout<<"object_rot:"<<endl;
+  cout<<object_rot<<endl;
 
-  // 计算完毕-------------------------------------------------
-
-  //目标物从工具坐标系转到基坐标系下
-  base_center3d=base2hand_r*base_center3d+base2hand_t;
-  quater=base2hand_q*quater;
-
-  //获取当前抓取物品的位置
-  transResult.x=base_center3d(0);
-  transResult.y=base_center3d(1);
-  transResult.z=base_center3d(2);
-  //ROS_INFO("curTargetPoint: %f %f %f",transResult.x,transResult.y,transResult.z);
-
-  transResult.qx=quater.x();
-  transResult.qy=quater.y();
-  transResult.qz=quater.z();
-  transResult.qw=quater.w();
+  //获取当前抓取物品的位置和姿态
+  transResult.x=base_center3f(0);
+  transResult.y=base_center3f(1);
+  transResult.z=base_center3f(2);
+  transResult.qx=object_quater.x();
+  transResult.qy=object_quater.y();
+  transResult.qz=object_quater.z();
+  transResult.qw=object_quater.w();
 
   return transResult;
 }
@@ -795,57 +783,87 @@ kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_
 geometry_msgs::Pose changePoseForUR(geometry_msgs::Pose pose)
 {
     double x_init,y_init,z_init,w_init;
-//    double x_mid,y_mid,z_mid,w_mid;
-//    double x_trans,y_trans,z_trans,w_trans;
-//    double x_x180,y_x180,z_x180,w_x180;
-//    double x_y270,y_y270,z_y270,w_y270;
+    double x_mid,y_mid,z_mid,w_mid;
+    double x_trans,y_trans,z_trans,w_trans;
+    double x_x180,y_x180,z_x180,w_x180;
+    double x_y270,y_y270,z_y270,w_y270;
 
     pose.position.x = -pose.position.x;
     pose.position.y = -pose.position.y;
     pose.position.z = pose.position.z;
 
-    x_init = pose.orientation.x;
-    y_init = pose.orientation.y;
-    z_init = pose.orientation.z;
-    w_init = pose.orientation.w;
+//    // what's the relationship
+//    Eigen::Quaternionf quater1(0,0,1,0);
+//    Eigen::Quaternionf quatermid(0.707105,0,0.707108,0);
+//    Eigen::Quaternionf quater2(0.5,-0.5,0.5,0.5);
+//    Eigen::Matrix3f wtfRot1;
+//    Eigen::Matrix3f wtfRotMid;
+//    Eigen::Matrix3f wtfRot2;
 
-    Eigen::Quaterniond q_init(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
-//    Eigen::Quaterniond q_x180(0,1,0,0);
-//    Eigen::Quaterniond q_y270(0.707,0,-0.707,0);
-    Eigen::Quaterniond q_z270(0.707,0,0,0.707);// 在转换网址里对应的数值是x90
-    //Eigen::Quaterniond q_trans=q_z270*q_x180*q_y270*q_init;
-    Eigen::Quaterniond q_trans=q_z270*q_init;
+//    wtfRot1 = quater1.toRotationMatrix();
+//    wtfRot2 = quater2.toRotationMatrix();
+//    wtfRotMid = quatermid.toRotationMatrix();
 
-//    x_x180 = 1;
-//    y_x180 = 0;
-//    z_x180 = 0;
-//    w_x180 = 0;
-
-
-//    x_y270 = 0;
-//    y_y270 = -0.707;
-//    z_y270 = 0;
-//    w_y270 = 0.707;
+//    cout<<"wtfRot1: "<<endl;
+//    cout<<wtfRot1<<endl;
+//    cout<<"wtfRot2: "<<endl;
+//    cout<<wtfRot2<<endl;
+//    cout<<"wtfRotMid: "<<endl;
+//    cout<<wtfRotMid<<endl;
 
 
-//    // init and y270
-//    w_mid = z_init*z_y270 - x_init*x_y270 - y_init*y_y270 - z_init*z_y270;
-//    x_mid = w_init*x_y270 + x_init*w_y270 + z_init*y_y270 - y_init*z_y270;
-//    y_mid = w_init*y_y270 + y_init*w_y270 + x_init*z_y270 - z_init*x_y270;
-//    z_mid = w_init*z_y270 + z_init*w_y270 + y_init*x_y270 - x_init*y_y270;
+    // calculate the transformation for ur
+    Eigen::Matrix3f originalRot;
+    Eigen::Matrix3f resultRot;
+    Eigen::Matrix3f midRot;
+    Eigen::Matrix3f transRot1;
+    Eigen::Matrix3f transRot2;
 
-//    // mid and x180
-//    w_trans = z_mid*z_x180 - x_mid*x_x180 - y_mid*y_x180 - z_mid*z_x180;
-//    x_trans = w_mid*x_x180 + x_mid*w_x180 + z_mid*y_x180 - y_mid*z_x180;
-//    y_trans = w_mid*y_x180 + y_mid*w_x180 + x_mid*z_x180 - z_mid*x_x180;
-//    z_trans = w_mid*z_x180 + z_mid*w_x180 + y_mid*x_x180 - x_mid*y_x180;
+    midRot << 0,0,1,
+              0,1,0,
+             -1,0,0;
 
-    double sum = sqrt(q_trans.x()*q_trans.x()+q_trans.y()*q_trans.y()+q_trans.z()*q_trans.z()+q_trans.w()*q_trans.w());
+    originalRot << -1,0,0,
+                   0,1,0,
+                  0,0,-1;
 
-    pose.orientation.x = q_trans.x()/sum;
-    pose.orientation.y = q_trans.y()/sum;
-    pose.orientation.z = q_trans.z()/sum;
-    pose.orientation.w = q_trans.w()/sum;
+    resultRot <<  0,-1,0,
+                  0,0,1,
+                 -1,0,0;
+
+    transRot1 = midRot*originalRot.inverse();
+    transRot2 = resultRot*midRot.inverse();
+    // calculation over
+
+    Eigen::Quaternionf originalPose;
+    Eigen::Matrix3f inputRot;
+    Eigen::Matrix3f outputRot;
+    Eigen::Quaternionf outputQuater;
+
+    originalPose.x() = pose.orientation.x;
+    originalPose.y() = pose.orientation.y;
+    originalPose.z() = pose.orientation.z;
+    originalPose.w() = pose.orientation.w;
+
+    inputRot = originalPose.toRotationMatrix();
+    outputRot = transRot2*transRot1*inputRot;
+
+//    cout<<"inputRot: "<<endl;
+//    cout<<inputRot<<endl;
+
+//    cout<<"outputRot: "<<endl;
+//    cout<<outputRot<<endl;
+
+    outputQuater = outputRot;
+    pose.orientation.x = outputQuater.x();
+    pose.orientation.y = outputQuater.y();
+    pose.orientation.z = outputQuater.z();
+    pose.orientation.w = outputQuater.w();
+
+//    pose.orientation.x = -0.5;
+//    pose.orientation.y = 0.5;
+//    pose.orientation.z = 0.5;
+//    pose.orientation.w = 0.5;
 
     return pose;
 }
@@ -903,6 +921,9 @@ int main(int argc, char **argv)
   /************输入目标标签***************/
   /*************************************/
 
+//  detectMsg.data = 1;		//让visual_detect节点检测目标
+//  detectTarget_pub.publish(detectMsg);sleep(3);
+
   ROS_INFO("waiting for tags of targets input in GUI");
   while(getTargetsTag!=1)				//等待抓取目标输入
   {
@@ -915,8 +936,6 @@ int main(int argc, char **argv)
       return 1;
     }
   }
-
-  detectMsg.data = 1;		//让visual_detect节点检测目标
 
   /*************************************/
   /***********目标检测与抓取**************/
@@ -937,7 +956,6 @@ int main(int argc, char **argv)
     for(int i=0;i<number;i++)
     {
       curTag = targetsTag[i];
-      detectTarget_pub.publish(detectMsg);sleep(4);
 
       //查表选择抓取高度
       highVal=highVals[curTag-1];
@@ -955,15 +973,15 @@ int main(int argc, char **argv)
         while((!isExist)&&(times<(poseChangeTimes)))
         {
           ROS_INFO("There is no target [%d], change pose to detect again.", curTag);
-          if(times==0) {startPose = startPose2;startPose = changePoseForUR(startPose);goStartPose();detectTarget_pub.publish(detectMsg);sleep(4);}
-          if(times==1) {startPose = startPose3;startPose = changePoseForUR(startPose);goStartPose();detectTarget_pub.publish(detectMsg);sleep(4);}
-          if(times==2) {startPose = startPose4;startPose = changePoseForUR(startPose);goStartPose();detectTarget_pub.publish(detectMsg);sleep(4);}
+          if(times==0) {startPose = startPose2;startPose = changePoseForUR(startPose);goStartPose();}
+          if(times==1) {startPose = startPose3;startPose = changePoseForUR(startPose);goStartPose();}
+          if(times==2) {startPose = startPose4;startPose = changePoseForUR(startPose);goStartPose();}
           if(times==poseChangeTimes)
           {
             ROS_INFO("Detection failed, go to pick the next target.");
 
             startPose = startPose1;startPose = changePoseForUR(startPose);
-            goStartPose();detectTarget_pub.publish(detectMsg);sleep(4);
+            goStartPose();
             nextTarget = true;
           }
           isExist = judgeIsExist(curTag,targets);
@@ -1018,7 +1036,6 @@ int main(int argc, char **argv)
 //            targetFinish = true;
 //            ROS_INFO("Target [%d] succeeds.", curTag);
 //          }
-          //sleep(60);
         }
         //if(nextTarget) targetFinish = true;
         targetFinish = true;

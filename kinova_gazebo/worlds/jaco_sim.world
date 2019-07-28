@@ -24,7 +24,7 @@
 
 <include>
   <uri>model://right_board</uri>
-  <pose>0.3 0.4 0.01 0 0 0</pose>
+  <pose>0.4 0.4 0.01 0 0 0</pose>
 </include>
 
 <joint name="left" type="revolute">

@@ -3,14 +3,14 @@ j2s7s300:
     constraints:
       goal_time: 1.0
       j2s7s300_joint_finger_1:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_finger_2:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_finger_3:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       stopped_velocity_tolerance: 0.02
     gains:
       j2s7s300_joint_finger_1:
@@ -37,27 +37,27 @@ j2s7s300:
     constraints:
       goal_time: 1.0
       j2s7s300_joint_1:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_2:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_3:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_4:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_5:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_6:
-        goal: 0.02
-        trajectory: 0.05
+        goal: 0.1
+        trajectory: 0.1
       j2s7s300_joint_7:
-        goal: 0.02
-        trajectory: 0.05
-      stopped_velocity_tolerance: 0.02
+        goal: 0.1
+        trajectory: 0.1
+      stopped_velocity_tolerance: 0.1
     gains:
       j2s7s300_joint_1:
         d: 0
