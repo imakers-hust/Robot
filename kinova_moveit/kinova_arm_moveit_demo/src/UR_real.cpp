@@ -26,13 +26,13 @@ using namespace Eigen;
 //-------------------------------------------------全局变量--------------------------------------------------
 const int N_MAX=70;                                 //循环抓取允许最大识别不到的次数，超出此次数识别结束
 vector<kinova_arm_moveit_demo::targetState> targets;//视觉定位结果
-geometry_msgs::Pose startPose;                    //机械臂初始识别位置
-geometry_msgs::Pose startPose1;                   //姿态备选
+geometry_msgs::Pose startPose;                      //机械臂初始识别位置
+geometry_msgs::Pose startPose1;                     //姿态备选
 geometry_msgs::Pose startPose2;
 geometry_msgs::Pose startPose3;
 geometry_msgs::Pose startPose4;
 geometry_msgs::Pose placePose;                      //机械臂抓取放置位置
-sensor_msgs::JointState urState;                //机械臂当前状态
+sensor_msgs::JointState urState;                    //机械臂当前状态
 vector<int> targetsTag;                           	//需要抓取的目标物的标签
 bool getTargets=0;                                	//当接收到视觉定位结果时getTargets置1，执行完放置后置0
 bool getTargetsTag=0;                             	//当接收到需要抓取的目标物的标签时置1
