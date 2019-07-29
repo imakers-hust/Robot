@@ -756,7 +756,7 @@ kinova_arm_moveit_demo::targetState transTarget(const tf2_ros::Buffer& tfBuffer_
 
   //获取当前抓取物品的位置
   transResult.x=base_center3f(0);
-  transResult.y=base_center3f(1)+0.04;
+  transResult.y=base_center3f(1);
   transResult.z=base_center3f(2);
   ROS_INFO("curTargetPoint: %f %f %f",transResult.x,transResult.y,transResult.z);
 
@@ -793,10 +793,10 @@ int main(int argc, char **argv)
   tf2_ros::TransformListener tfListener(tfBuffer);  //获取机械臂末端在基坐标系下的位姿
 
   //手眼关系赋值 ----------------------------- modify there
-  hand2eye_r<<-1, 0, 0,
-               0, 1, 0,
-               0, 0, -1;
-  hand2eye_t<<0.321,0.43,0.8;
+  hand2eye_r<<-0.9924738091375914, -0.1213602416297555, 0.0163532849142974,
+               0.1213319507037458, -0.9926082748504998, -0.002714854828434464,
+               0.01656188136488795, -0.0007102463537660918, 0.9998625903771839;
+  hand2eye_t<<0.02577698060062119,0.08487890338372273,-0.1433692466795762;
   hand2eye_q=hand2eye_r;
 
   client = new Finger_actionlibClient(Finger_action_address, true);
